@@ -1,0 +1,42 @@
+---
+- name: Create sudo group
+  become: True
+  group:
+    name: sudo
+    state: present
+  when: ansible_distribution == "Fedora"
+
+- name: Add base users
+  become: True
+  user:
+    name: "{{ item }}"
+    shell: "{{ user_config_shell }}"
+    append: yes
+  with_items: "{{ user_config_users }}"
+
+- name: Set passwords for privileged users
+  become: True
+  user:
+    name: "{{ item }}"
+    password: "{{ user_config_root_password }}"
+  with_items:
+    - root
+    - "{{ user_config_sudo_users }}"
+
+- name: Set the shell of root to default shell
+  become: True
+  user:
+    name: "root"
+    shell: "{{ user_config_shell }}"
+
+- name: Configure sudo without password
+  become: True
+  lineinfile:
+    dest: /etc/sudoers
+    owner: root
+    group: root
+    mode: 0440
+    line: "%sudo ALL=(ALL) NOPASSWD:ALL"
+    state: present
+    create: yes
+    validate: "/usr/sbin/visudo -cf %s"

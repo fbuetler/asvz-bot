@@ -1,0 +1,55 @@
+---
+
+vis_base_aptly_repository_key: |-
+  -----BEGIN PGP PUBLIC KEY BLOCK-----
+
+  mQENBFsX8lUBCAC23hYbvV5PLTP5oW0NS5+fOOoiMtH7obJtJpiwTdUsTE1SX04t
+  hTwyY7FpsibgDwHJg2IFtuCl82ReHEtVgTnfyz42qlFpbs3j7CwWCxw/LQ4J3oST
+  9QuSDfKp/GSAbAu9XjIB0ncKmeVLScD/trcQ5t1NYBwedwyEz59gzP7iX+5yohMq
+  hTwP4QBcEx3i4sYixMomDIMx1YBva4QVOs693IUS+EwSSMRFQfgQbave81lcFyp+
+  pyfI2gbsuMIXIuO0UcydZfaRHCH118QeI/UXnNTX0ZtUlqbyT4TB1e1GjHtF9ozd
+  iAChksbDz4OxMHDvtvbN6AqdLC7fmQv+E4GZABEBAAG0M0FwdGx5IG9uIGFwdC52
+  aXMuZXRoei5jaCAoQXV0b2dlbmVyYXRlZCBieSBBbnNpYmxlKYkBOAQTAQgAIgUC
+  WxfyVQIbLwYLCQgHAwIGFQgCCQoLBBYCAwECHgECF4AACgkQCJVYW3FHyj8dEggA
+  lkZ/WGS0jkXYKOqiH+08SkIOObWxSE7009ditPTrpAlvzTDMcV3xMRtKJvFCn/sj
+  4g/Crx4NgM5kK39smA9wPmOWF73epb+RliDbZnr7pdjhIFFcg4pPsEta7g4ACRMa
+  A5pwd3o2jNld8MLOAficD1W0pkJ5/ir6IknmK+7VNDH1Tphgw+J19kRl/l9EcO/e
+  c3mAxLkjdh0i7g2ixkCJTBduJaI8TFK0A0I6xuyzm4Yzs+4F1YDRDmcMq6y8MOPL
+  0za17IincD7uWcULcgLBGoqGLawUn9dg+kpKY+a96lKBUb7mUDzicrsgS4vcXaxG
+  CB/NQJzi+kID2mOLfVYK6g==
+  =xTnm
+  -----END PGP PUBLIC KEY BLOCK-----
+
+vis_base_pkgs:
+  - ca-certificates
+  - curl
+  - emacs-nox
+  - git
+  - htop
+  - iftop
+  - iotop
+  - logrotate  # should be configured sometimes?
+  - lshw
+  - nano
+  - net-tools
+  - nmap
+  - sudo
+  - sysstat
+  - tmux
+  - tree
+  - unzip
+
+vis_base_debian_specific_pkgs:
+  - gnupg
+  - aptitude
+  - apt-dater-host
+  - ssl-cert
+  - dnsutils
+
+# python3 to be installed beforehand (obviously) and is merely listed for convenience
+vis_base_fedora_specific_pkgs:
+  - python3
+  - libselinux-python
+
+vis_base_journald_max_size: 100M
+

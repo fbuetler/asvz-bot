@@ -1,0 +1,6 @@
+---
+- name: Configure systemd service to set MAC address
+  become: True
+  template:
+    src: 00-mac-eth0.link.j2
+    dest: /etc/systemd/network/00-mac-eth0.link

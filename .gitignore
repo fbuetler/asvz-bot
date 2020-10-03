@@ -1,0 +1,25 @@
+# Virtual env
+.venv
+venv
+
+# Ansible-Vault
+.secret
+
+# files to exclude
+*_bak
+*.bak
+*.tmp
+*.log
+*.png
+
+# vim intermediary files
+*.swp
+
+# Editor configuration
+.idea
+.vscode
+
+# OS X
+.DS_Store
+
+ansible/group_vars/all/localhost.yml

@@ -1,0 +1,8 @@
+-----------------------------
+{{ motd_desc }}
+-----------------------------
+Users that have root access to this server:
+{{ ssh_config_privileged_users | sort | join(", ") }}
+Users that have access to this server:
+{{ ssh_config_unprivileged_users | default([]) | sort | join(", ") }}
+-----------------------------

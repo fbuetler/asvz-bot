@@ -1,0 +1,16 @@
+---
+- name: Blacklist bluetooth drivers
+  become: True
+  copy:
+    src: blacklist.conf
+    dest: /etc/modprobe.d/disable-wireless-features.conf
+
+- name: Disable bluetooth
+  become: True
+  systemd:
+    name: "{{ item }}"
+    state: stopped
+    enabled: no
+  with_items:
+    - bluetooth
+    - hciuart

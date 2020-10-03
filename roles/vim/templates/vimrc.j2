@@ -1,0 +1,51 @@
+scriptencoding utf-8
+
+syntax on
+colorscheme koehler
+
+set nocompatible        " Use Vim defaults (much better!)
+set tabstop=4           " Tab = 4 Spaces
+set autoindent
+set smartindent
+set nocindent
+set ignorecase
+set expandtab
+set nu                  "Line numbers
+set numberwidth=4
+set incsearch           " search live while search pattern is beeing specified
+set hlsearch            " search live while search pattern is beeing specified
+set scrolloff=2         " scroll already before top is reached
+set history=50          " keep 50 lines of command history
+set ruler               " Show the cursor position all the time
+set viminfo='20,\"500   " Keep a .viminfo file.
+set shiftwidth=4
+set softtabstop=4
+set gcr=n-v-i-c:blinkon0      "Turn off the blinking gvim cursor in normal mode:
+
+" Centralize SWAP and Backupfiles
+let $TMP=$HOME.'/.vim/swap/'
+if isdirectory($TMP) == 0
+    :silent !mkdir -p ~/.vim/swap >/dev/null 2>&1
+endif
+set directory=$TMP
+
+let $Backup=$HOME.'/.vim/backups/'
+if isdirectory($Backup) == 0
+    :silent !mkdir -p ~/.vim/backups >/dev/null 2>&1
+endif
+set backupdir=$Backup
+set backup
+
+" tell it to use an undo file
+let $UNDO=$HOME.'/.vim/undo/'
+if isdirectory($UNDO) == 0
+    :silent !mkdir -p ~/.vim/undo >/dev/null 2>&1
+endif
+set undodir=$UNDO
+set undofile
+
+" viminfo stores the the state of your previous editing session
+set viminfo+=n~/.vim/viminfo
+
+inoremap jj <esc>
+nnoremap <CR> :noh <CR>

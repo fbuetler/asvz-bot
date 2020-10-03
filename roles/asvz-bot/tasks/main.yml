@@ -1,0 +1,45 @@
+---
+- name: Install required software
+  become: True
+  apt:
+    name:
+      - python3
+      - python3-pip
+      - chromium-chromedriver
+    state: present
+
+- name: Create aszv-bot user
+  become: True
+  user:
+    name: aszv-bot
+    shell: /bin/bash
+    state: present
+
+- name: Copy requirements
+  become: True
+  copy:
+    src: requirements.txt
+    dest: /home/aszv-bot/requirements.txt
+    owner: aszv-bot
+    group: aszv-bot
+
+- name: Install required dependencies
+  become_user: aszv-bot
+  shell: "pip3 install -r /home/aszv-bot/requirements.txt"
+
+- name: Copy script
+  become: True
+  copy:
+    src: asvz_bot.py
+    dest: /home/aszv-bot/asvz_bot.py
+    owner: aszv-bot
+    group: aszv-bot
+
+- name: Create cronjob
+  cron:
+    name: "sign up for {{ item.weekday }} at {{ item.hour }}:{{ item.minute }}"
+    minute: "{{ item.minute }}"
+    hour: "{{ (item.hour|int - 1) % 24 }}"
+    weekday: "{{ (item.weekday|int - 1) % 6 }}"
+    job: "/usr/bin/python3 asvz_bot.py -u {{ username }} -p {{ vault_user_password }} -w {{ item.weekday }} -t {{ item.hour }}:{{ item.minute }} -f '{{ item.facility }}' '{{ item.sportfahrplan }}'"
+  loop: "{{ subscription_times }}"

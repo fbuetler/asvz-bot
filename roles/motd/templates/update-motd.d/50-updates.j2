@@ -1,0 +1,5 @@
+#!/bin/bash
+
+num=`apt list --upgradeable | egrep '[a-zA-Z0-9]*\/[a-zA-Z0-9]*.*' | wc -l`
+echo "-----------------------------"
+echo "There are $num available updates."

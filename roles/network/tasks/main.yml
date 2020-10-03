@@ -1,0 +1,78 @@
+---
+  - name: Install required software
+    become: True
+    when:
+      - netconf is defined
+    apt:
+      name:
+        - bridge-utils
+        - resolvconf
+        - ifenslave
+        - iproute2
+      state: present
+
+  - name: Kill cloud-config network configuration
+    become: True
+    when: network_kill_cloudconfig
+    file:
+      path: /etc/network/interfaces.d/50-cloud-init.cfg
+      state: absent
+
+  - name: Configure routing tables
+    become: True
+    template: src=rt_tables.j2 dest=/etc/iproute2/rt_tables owner=root group=root mode=0644
+    when:
+      - netconf is defined
+      - netconf.rt is defined
+
+  - name: Configure loopback interface
+    become: True
+    copy: src=lo dest=/etc/network/interfaces.d/lo owner=root group=root mode=0644
+    when:
+      - netconf is defined
+
+  - name: Configure normal interfaces
+    become: True
+    template: src=if.j2 dest=/etc/network/interfaces.d/{{ item.key }} owner=root group=root mode=0644
+    with_dict: "{{ hostvars[inventory_hostname]['netconf']['if'] }}"
+    when:
+      - netconf is defined
+      - netconf.if is defined
+
+  - name: Configure bond interfaces
+    become: True
+    template: src=bond.j2 dest=/etc/network/interfaces.d/{{ item.key }} owner=root group=root mode=0644
+    with_dict: "{{ hostvars[inventory_hostname]['netconf']['bond'] }}"
+    when:
+      - netconf is defined
+      - netconf.bond is defined
+
+  - name: Configure vlan interfaces
+    become: True
+    template: src=vlan.j2 dest=/etc/network/interfaces.d/zz-{{ item.value.parent }}.{{ item.key }} owner=root group=root mode=0644
+    with_dict: "{{ hostvars[inventory_hostname]['netconf']['vlan'] }}"
+    when:
+      - netconf is defined
+      - netconf.vlan is defined
+
+  - name: Configure bridge interfaces
+    become: True
+    template: src=bridge.j2 dest=/etc/network/interfaces.d/zz-{{ item.key }} owner=root group=root mode=0644
+    with_dict: "{{ hostvars[inventory_hostname]['netconf']['bridge'] }}"
+    when:
+      - netconf is defined
+      - netconf.bridge is defined
+
+  - name: Overwrite main network config file
+    become: True
+    template: src=interfaces.j2 dest=/etc/network/interfaces owner=root group=root mode=0644
+    when:
+      - netconf is defined
+      - not network_squash_config
+
+  - name: Overwrite main network config file
+    become: True
+    assemble: src=/etc/network/interfaces.d dest=/etc/network/interfaces owner=root group=root mode=0644
+    when:
+      - netconf is defined
+      - network_squash_config
