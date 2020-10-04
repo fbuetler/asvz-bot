@@ -14,7 +14,7 @@ Author: Florian Bütler
 import time
 import argparse
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
@@ -23,32 +23,43 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 
 
-def waiting_fct(lesson_time):
-    currentTime = datetime.today()
-    enrollmentTime = datetime.strptime(lesson_time, "%H:%M")
+def waiting_fct(enrollment_time):
+    current_time = datetime.today()
+    enrollment_time = datetime.strptime(enrollment_time, "%H:%M")
+    enrollment_time = datetime(
+        current_time.year,
+        current_time.month,
+        current_time.day,
+        enrollment_time.hour,
+        enrollment_time.minute,
+    )
 
     logging.info(
-        "\ncurrent time: {}\nlesson time: {}".format(currentTime, enrollmentTime)
+        "\n\tcurrent time: {}\n\tenrollment time: {}".format(
+            current_time.strftime("%H:%M:%S"), enrollment_time.strftime("%H:%M:%S")
+        )
     )
-    while currentTime.hour < enrollmentTime.hour:
-        logging.info("Wait for enrollment to open")
-        time.sleep(60)
+
+    login_before_enrollment_seconds = 1 * 60
+    if (enrollment_time - current_time).seconds > login_before_enrollment_seconds:
+        sleep_time = (
+            enrollment_time - current_time
+        ).seconds - login_before_enrollment_seconds
+        logging.info(
+            "Sleep for {} seconds until {}".format(
+                sleep_time,
+                (current_time + timedelta(seconds=sleep_time)).strftime("%H:%M:%S"),
+            )
+        )
+        time.sleep(sleep_time)
         currentTime = datetime.today()
-
-    if currentTime.hour == enrollmentTime.hour:
-        while currentTime.minute < enrollmentTime.minute - 3:
-            logging.info("Wait for enrollment to open")
-            time.sleep(30)
-            currentTime = datetime.today()
-
-    if currentTime.hour > enrollmentTime.hour:
-        logging.info("Enrollment time is over. Exiting...")
-        exit(1)
 
     return
 
 
-def asvz_enroll(username, password, weekday, facility, start_time, sportfahrplan_link):
+def asvz_enroll(
+    username, password, weekday, facility, enrollment_time, sportfahrplan_link
+):
     logging.info("Enrollment started")
 
     if weekday == "0":
@@ -70,8 +81,8 @@ def asvz_enroll(username, password, weekday, facility, start_time, sportfahrplan
         exit(0)
 
     logging.info(
-        "\nweekday: {}\n facility: {}\n start time: {}\n sportfahrplan: {}".format(
-            weekday, facility, start_time, sportfahrplan_link
+        "\n\tweekday: {}\n\tenrollment time: {}\n\tfacility: {}\n\tsportfahrplan: {}".format(
+            weekday, enrollment_time, facility, sportfahrplan_link
         )
     )
 
@@ -84,33 +95,62 @@ def asvz_enroll(username, password, weekday, facility, start_time, sportfahrplan
 
     try:
         driver.get(sportfahrplan_link)
-        driver.implicitly_wait(10)  # wait 10 seconds if not defined differently
-        logging.info("Headless Chrome Initialized")
-        # find corresponding day div:
+        driver.implicitly_wait(10)
+        logging.info("Headless Chrome started")
+
         day_ele = driver.find_element_by_xpath(
-            "//div[@class='teaser-list-calendar__day'][contains(., '" + weekday + "')]"
+            "//div[@class='teaser-list-calendar__day'][contains(., '{}')]".format(
+                weekday
+            )
         )
-        # search in day div after corresponding location and time
         day_ele.find_element_by_xpath(
-            ".//li[@class='btn-hover-parent'][contains(., '"
-            + facility
-            + "')][contains(., '"
-            + start_time
-            + "')]"
+            ".//li[@class='btn-hover-parent'][contains(., '{}')][contains(., '{}')]".format(
+                facility, enrollment_time
+            )
         ).click()
+
+        current_time = datetime.today()
+        enrollment_time = datetime.strptime(enrollment_time, "%H:%M")
+        enrollment_time = datetime(
+            current_time.year,
+            current_time.month,
+            current_time.day,
+            enrollment_time.hour,
+            enrollment_time.minute,
+        )
+
+        if (enrollment_time - current_time).days >= 0:
+            xpath = (
+                "//a[@class='btn btn--block btn--icon relative btn--primary-border']"
+            )
+        else:
+            xpath = "//a[@class='btn btn--block btn--icon relative btn--primary']"
 
         WebDriverWait(driver, 20).until(
             EC.element_to_be_clickable(
                 (
                     By.XPATH,
-                    "//a[@class='btn btn--block btn--icon relative btn--primary']",
+                    xpath,
                 )
             )
         ).send_keys(Keys.ENTER)
-        # switch to new window:
+
         time.sleep(2)  # necessary because tab needs to be open to get window handles
         tabs = driver.window_handles
         driver.switch_to.window(tabs[-1])
+        logging.info("Lesson found")
+
+        full = None
+        try:
+            full = driver.find_element_by_xpath(
+                "//alert[@class='ng-star-inserted'][contains(., 'ausgebucht')]"
+            )
+        except:
+            pass
+        if full is not None:
+            logging.info("Lesson is booked out.")
+            return
+
         WebDriverWait(driver, 20).until(
             EC.element_to_be_clickable(
                 (
@@ -127,11 +167,12 @@ def asvz_enroll(username, password, weekday, facility, start_time, sportfahrplan
                 )
             )
         ).click()
+
         # choose organization:
         organization = driver.find_element_by_xpath(
             "//input[@id='userIdPSelection_iddtext']"
         )
-        organization.send_keys(Keys.CONTROL + "a")
+        organization.send_keys("{}a".format(Keys.CONTROL))
         organization.send_keys("ETH Zurich")
         organization.send_keys(Keys.ENTER)
 
@@ -140,9 +181,8 @@ def asvz_enroll(username, password, weekday, facility, start_time, sportfahrplan
         driver.find_element_by_xpath("//button[@type='submit']").click()
         logging.info("Submitted Login Credentials")
 
-        # wait for button to be clickable for 5 minutes, which is more than enough
-        # still needs to be tested what happens if we are on the page before button is enabled
-        WebDriverWait(driver, 300).until(
+        logging.info("Waiting for enrollment")
+        WebDriverWait(driver, 5 * 60).until(
             EC.element_to_be_clickable(
                 (
                     By.XPATH,
@@ -150,13 +190,10 @@ def asvz_enroll(username, password, weekday, facility, start_time, sportfahrplan
                 )
             )
         ).click()
+        time.sleep(5)
         logging.info("Successfully enrolled. Train hard and have fun!")
-    except:  # using non-specific exceptions, since there are different exceptions possible: timeout, element not found because not loaded, etc.
+    finally:
         driver.quit()
-        raise  # re-raise previous exception
-
-    driver.quit  # close all tabs and window
-    return True
 
 
 logging.basicConfig(
@@ -165,6 +202,7 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 
+logging.debug("Parsing arguments")
 parser = argparse.ArgumentParser()
 parser.add_argument("-u", "--username", help="ETHZ username i.e. nethz")
 parser.add_argument("-p", "--password", help="ETHZ password")
@@ -184,30 +222,17 @@ parser.add_argument(
     help="link to particular sport on ASVZ Sportfahrplan, e.g. volleyball",
 )
 args = parser.parse_args()
-
-# run enrollment script:
-i = 0  # count
-success = False
+logging.debug("Parsed arguments")
 
 logging.info("Script started")
 waiting_fct(args.time)
 
-# if there is an exception (no registration possible), enrollment is tried again and then stopped to avoid a lock-out
-while not success:
-    try:
-        success = asvz_enroll(
-            args.username,
-            args.password,
-            args.weekday,
-            args.facility,
-            args.time,
-            args.sportfahrplan,
-        )
-        logging.info("Script successfully finished")
-    except:
-        if i < 3:
-            i += 1
-            logging.info("Enrollment failed. Start try number {}".format(i + 1))
-            pass
-        else:
-            raise
+asvz_enroll(
+    args.username,
+    args.password,
+    args.weekday,
+    args.facility,
+    args.time,
+    args.sportfahrplan,
+)
+logging.info("Script successfully finished")
