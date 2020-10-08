@@ -41,5 +41,5 @@
     minute: "{{ item.minute }}"
     hour: "{{ (item.hour|int - 1) % 24 }}"
     weekday: "{{ (item.weekday|int - 1) % 6 }}"
-    job: "/usr/bin/python3 asvz_bot.py -u {{ username }} -p {{ vault_user_password }} -w {{ item.weekday }} -t {{ item.hour }}:{{ item.minute }} -f '{{ item.facility }}' '{{ item.sportfahrplan }}'"
+    job: "/usr/bin/python3 asvz_bot.py -u {{ username }} -p {{ vault_user_password }} -w {{ item.weekday }} -t {{ item.hour }}:{{ item.minute }} -f '{{ item.facility }}' '{{ item.sportfahrplan }}' &> /home/asvz-bot/logs"
   loop: "{{ subscription_times }}"

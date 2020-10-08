@@ -90,7 +90,7 @@ def asvz_enroll(
     options.add_argument(
         "--private"
     )  # open in private mode to avoid different login scenario
-    # options.add_argument("--headless")
+    options.add_argument("--headless")
     driver = webdriver.Chrome(options=options)
 
     try:
