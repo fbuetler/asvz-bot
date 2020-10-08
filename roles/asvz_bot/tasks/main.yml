@@ -35,13 +35,18 @@
     owner: asvz-bot
     group: asvz-bot
 
+- name: Remove crontab of asvz-bot
+  become: True
+  become_user: asvz-bot
+  shell: crontab -r
+
 - name: Create cronjob
   become: True
   cron:
     name: "sign up for {{ item.weekday }} at {{ item.hour }}:{{ item.minute }}"
-    user: "asvz-bot"
+    user: asvz-bot
     minute: "{{ item.minute }}"
     hour: "{{ (item.hour|int - 1) % 24 }}"
     weekday: "{{ (item.weekday|int - 1) % 6 }}"
-    job: "/usr/bin/python3 /home/asvz-bot/asvz_bot.py -u {{ username }} -p {{ vault_user_password }} -w {{ item.weekday }} -t {{ item.hour }}:{{ item.minute }} -f '{{ item.facility }}' '{{ item.sportfahrplan }}' >> /var/log/cron.log"
+    job: "/usr/bin/python3 /home/asvz-bot/asvz_bot.py -u {{ username }} -p {{ vault_user_password }} -w {{ item.weekday }} -t {{ item.hour }}:{{ item.minute }} -f '{{ item.facility }}' '{{ item.sportfahrplan }}' >> /home/asvz-bot/cron.log"
   loop: "{{ subscription_times }}"
