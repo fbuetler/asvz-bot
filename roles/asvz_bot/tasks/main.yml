@@ -8,10 +8,10 @@
       - chromium-chromedriver
     state: present
 
-- name: Create aszv-bot user
+- name: Create asvz-bot user
   become: True
   user:
-    name: aszv-bot
+    name: asvz-bot
     shell: /bin/bash
     state: present
 
@@ -19,27 +19,29 @@
   become: True
   copy:
     src: requirements.txt
-    dest: /home/aszv-bot/requirements.txt
-    owner: aszv-bot
-    group: aszv-bot
+    dest: /home/asvz-bot/requirements.txt
+    owner: asvz-bot
+    group: asvz-bot
 
 - name: Install required dependencies
-  become_user: aszv-bot
-  shell: "pip3 install -r /home/aszv-bot/requirements.txt"
+  become_user: asvz-bot
+  shell: "pip3 install -r /home/asvz-bot/requirements.txt"
 
 - name: Copy script
   become: True
   copy:
     src: asvz_bot.py
-    dest: /home/aszv-bot/asvz_bot.py
-    owner: aszv-bot
-    group: aszv-bot
+    dest: /home/asvz-bot/asvz_bot.py
+    owner: asvz-bot
+    group: asvz-bot
 
 - name: Create cronjob
+  become: True
   cron:
     name: "sign up for {{ item.weekday }} at {{ item.hour }}:{{ item.minute }}"
+    user: "asvz-bot"
     minute: "{{ item.minute }}"
     hour: "{{ (item.hour|int - 1) % 24 }}"
     weekday: "{{ (item.weekday|int - 1) % 6 }}"
-    job: "/usr/bin/python3 asvz_bot.py -u {{ username }} -p {{ vault_user_password }} -w {{ item.weekday }} -t {{ item.hour }}:{{ item.minute }} -f '{{ item.facility }}' '{{ item.sportfahrplan }}' &> /home/asvz-bot/logs"
+    job: "/usr/bin/python3 /home/asvz-bot/asvz_bot.py -u {{ username }} -p {{ vault_user_password }} -w {{ item.weekday }} -t {{ item.hour }}:{{ item.minute }} -f '{{ item.facility }}' '{{ item.sportfahrplan }}' >> /var/log/cron.log"
   loop: "{{ subscription_times }}"
