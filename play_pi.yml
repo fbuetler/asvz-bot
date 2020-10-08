@@ -44,8 +44,8 @@
     - name: pi-mac-address
       tags: pi-mac-address, base
 
-- hosts: asvz-bots
+- hosts: asvz_bots
   any_errors_fatal: True
   roles:
-    - role: asvz-bot
-      tags: asvz-bot
+    - role: asvz_bot
+      tags: asvz_bot
