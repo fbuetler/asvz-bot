@@ -1,5 +1,0 @@
----
-
-motd_desc: "Default motd, set by Ansible"
-ssh_config_privileged_users: []
-ssh_config_unprivileged_users: []

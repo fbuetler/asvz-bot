@@ -1,7 +1,0 @@
----
-
-- name: restart systemd-journald
-  become: True
-  systemd:
-    name: systemd-journald
-    state: restarted

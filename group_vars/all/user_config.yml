@@ -1,5 +1,0 @@
----
-user_config_users:
-  - "{{ ansible_ssh_user }}"
-
-user_config_root_password: "{{ vault_user_config_root_password }}"

@@ -1,6 +1,0 @@
----
-# Give access to all Göttis by default
-ssh_config_privileged_users:
-  - flbuetle
-
-ssh_config_unprivileged_user: "uvis"

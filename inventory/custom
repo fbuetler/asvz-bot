@@ -1,6 +1,0 @@
-# ansible-playbook -i inventory/custom play_pi.yml --diff --skip-tags asvz_bot
-
-asvz_bot ansible_ssh_host=192.168.0.227 ansible_ssh_user=pi
-
-[asvz_bots]
-asvz_bot

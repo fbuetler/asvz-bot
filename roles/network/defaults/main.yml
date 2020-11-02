@@ -1,8 +1,0 @@
-# Which VLAN do untagged packets belong to? OVS doesn't really support untagged
-# VLANs that well, so we need to retag them on ingress. This defaults to the
-# normal SOS DC server network
-ovs_untagged_vlan: 2523
-
-network_mode: 'classic'
-network_squash_config: False
-network_kill_cloudconfig: False

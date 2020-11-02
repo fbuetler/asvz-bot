@@ -1,40 +1,16 @@
-## The ansible repository
+## The asvz bot
 
-### How to set up a new PI
-* Acquire the necessary passwords and configuration.
-  * Root password of the machine (for a new ISO image it is `raspberry`)
-  * List of users with access to that machine
-* Download a Debian Buster ISO image and install it on the host you want to setup.
-  * `curl https://downloads.raspberrypi.org/raspios_lite_armhf_latest | unzip`
-  * Search for the device name `lsblk`
-  * `sudo dd bs=4M if=<img name>.img of=/dev/<dev name> conv=fsync status=progress`
-* Connect PI to wifi/ethernet
-  * Mount the sd card into your pc
-  * Put a file named `wpa_supplicant.conf` into the `boot` folder of the sd card
-  ```
-  ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
-  update_config=1
-  network={
-      ssid="YOUR_NETWORK_NAME"
-      psk="YOUR_PASSWORD"
-      scan_ssid=1
-  }
-  ```
-  * Boot the PI with this SD Card and it should connect automatically to your wifi
-* Install the following packages:
-  * `python3`
-* Enable and start ssh 
-  * `sudo systemctl enable ssh; sudo systemctl start ssh`
-* Add your ssh (public) key to `~/.ssh/authorized_keys`.
-  * `ssh-copy-id -i ~/.ssh/id_rsa pi@<ip>`
-* Add PI to the custom inventory file.
-* Rollout time!
+This repo contains a ansible role to setup the asvz bot
 
-### Style guidelines
-1. Roles are like classes. They do one thing, and one thing well.
-2. All variables used in a role are prefixed with that role's name.
+### How to use the script only
 
-### Naming conventions
-1. All roles are written in `snake_case`, using only `_`  as separators.
-2. All variables introduced by a role are listed in `defaults/` with a default
-value.
+```bash
+cd files
+python -m pip install venv
+python -m venv .venv
+source .venv/bin/activate
+python install -r requirements.txt
+python asvz_bot.py -h
+```
+
+

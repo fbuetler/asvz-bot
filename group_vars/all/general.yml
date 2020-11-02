@@ -1,8 +1,0 @@
----
-# Use Python 3 only as of August 2019.
-# If a task/role explicitly requires Python 2, the interpreter can be
-# individually set to python2 for that task.
-
-ansible_python_interpreter: /usr/bin/python3
-
-motd_desc: "Default motd"
