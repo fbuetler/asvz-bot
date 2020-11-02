@@ -178,17 +178,17 @@ def main():
     parser.add_argument(
         "-w",
         "--weekday",
-        help="Day of the week of the lesson (0-6 for Sunday-Saturday, etc )",
+        help="Day of the week of the lesson i.e. 0-6 for Sunday-Saturday",
     )
-    parser.add_argument("-t", "--time", help="Time when the lesson starts e.g. 19:15")
+    parser.add_argument("-t", "--time", help="Time when the lesson starts e.g. '19:15'")
     parser.add_argument(
         "-f",
         "--facility",
-        help="Facility where the lesson takes place e.g. Sport Center Polyterrasse",
+        help="Facility where the lesson takes place e.g. 'Sport Center Polyterrasse'",
     )
     parser.add_argument(
         "sportfahrplan",
-        help="link to particular sport on ASVZ Sportfahrplan, e.g. volleyball",
+        help="link to particular sport on ASVZ Sportfahrplan, e.g. https://asvz.ch/426-sportfahrplan?f[0]=sport:45743 for volleyball. Make sure there starts only one lesson for that particular time at that particular location (i.e. use ASVZ filters).",
     )
     args = parser.parse_args()
     logging.debug("Parsed arguments")
