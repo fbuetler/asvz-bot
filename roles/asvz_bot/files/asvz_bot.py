@@ -21,18 +21,19 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
+from validators import ValidationFailure, url as url_validator
+
+TIMEFORMAT = "%H:%M"
+
+logging.basicConfig(
+    format="%(asctime)s %(levelname)-8s %(message)s",
+    level=logging.INFO,
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 
 
 def waiting_fct(enrollment_time):
     current_time = datetime.today()
-    enrollment_time = datetime.strptime(enrollment_time, "%H:%M")
-    enrollment_time = datetime(
-        current_time.year,
-        current_time.month,
-        current_time.day,
-        enrollment_time.hour,
-        enrollment_time.minute,
-    )
 
     logging.info(
         "\n\tcurrent time: {}\n\tenrollment time: {}".format(
@@ -62,24 +63,6 @@ def asvz_enroll(
 ):
     logging.info("Enrollment started")
 
-    if weekday == "0":
-        weekday = "Sonntag"
-    elif weekday == "1":
-        weekday = "Montag"
-    elif weekday == "2":
-        weekday = "Dienstag"
-    elif weekday == "3":
-        weekday = "Mittwoch"
-    elif weekday == "4":
-        weekday = "Donnerstag"
-    elif weekday == "5":
-        weekday = "Freitag"
-    elif weekday == "6":
-        weekday = "Samstag"
-    else:
-        logging.error("invalid weekday specified")
-        exit(0)
-
     logging.info(
         "\n\tweekday: {}\n\tenrollment time: {}\n\tfacility: {}\n\tsportfahrplan: {}".format(
             weekday, enrollment_time, facility, sportfahrplan_link
@@ -105,21 +88,11 @@ def asvz_enroll(
         )
         day_ele.find_element_by_xpath(
             ".//li[@class='btn-hover-parent'][contains(., '{}')][contains(., '{}')]".format(
-                facility, enrollment_time
+                facility, enrollment_time.strftime(TIMEFORMAT)
             )
         ).click()
 
-        current_time = datetime.today()
-        enrollment_time = datetime.strptime(enrollment_time, "%H:%M")
-        enrollment_time = datetime(
-            current_time.year,
-            current_time.month,
-            current_time.day,
-            enrollment_time.hour,
-            enrollment_time.minute,
-        )
-
-        if (enrollment_time - current_time).days >= 0:
+        if (enrollment_time - datetime.today()).days >= 0:
             xpath = (
                 "//a[@class='btn btn--block btn--icon relative btn--primary-border']"
             )
@@ -196,43 +169,89 @@ def asvz_enroll(
         driver.quit()
 
 
-logging.basicConfig(
-    format="%(asctime)s %(levelname)-8s %(message)s",
-    level=logging.INFO,
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
+def main():
+    logging.debug("Parsing arguments")
+    # parse args
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-u", "--username", help="ETHZ username i.e. nethz")
+    parser.add_argument("-p", "--password", help="ETHZ password")
+    parser.add_argument(
+        "-w",
+        "--weekday",
+        help="Day of the week of the lesson (0-6 for Sunday-Saturday, etc )",
+    )
+    parser.add_argument("-t", "--time", help="Time when the lesson starts e.g. 19:15")
+    parser.add_argument(
+        "-f",
+        "--facility",
+        help="Facility where the lesson takes place e.g. Sport Center Polyterrasse",
+    )
+    parser.add_argument(
+        "sportfahrplan",
+        help="link to particular sport on ASVZ Sportfahrplan, e.g. volleyball",
+    )
+    args = parser.parse_args()
+    logging.debug("Parsed arguments")
 
-logging.debug("Parsing arguments")
-parser = argparse.ArgumentParser()
-parser.add_argument("-u", "--username", help="ETHZ username i.e. nethz")
-parser.add_argument("-p", "--password", help="ETHZ password")
-parser.add_argument(
-    "-w",
-    "--weekday",
-    help="Day of the week of the lesson (0-6 for Sunday-Saturday, etc )",
-)
-parser.add_argument("-t", "--time", help="Time when the lesson starts e.g. 19:15")
-parser.add_argument(
-    "-f",
-    "--facility",
-    help="Facility where the lesson takes place e.g. Sport Center Polyterrasse",
-)
-parser.add_argument(
-    "sportfahrplan",
-    help="link to particular sport on ASVZ Sportfahrplan, e.g. volleyball",
-)
-args = parser.parse_args()
-logging.debug("Parsed arguments")
+    # validate args
+    if args.weekday == "0":
+        weekday = "Sonntag"
+    elif args.weekday == "1":
+        weekday = "Montag"
+    elif args.weekday == "2":
+        weekday = "Dienstag"
+    elif args.weekday == "3":
+        weekday = "Mittwoch"
+    elif args.weekday == "4":
+        weekday = "Donnerstag"
+    elif args.weekday == "5":
+        weekday = "Freitag"
+    elif args.weekday == "6":
+        weekday = "Samstag"
+    else:
+        logging.error("invalid weekday specified")
+        exit(1)
 
-logging.info("Script started")
-waiting_fct(args.time)
+    try:
+        time = datetime.strptime(args.time, TIMEFORMAT)
+    except ValueError:
+        logging.error("invalid time specified")
+        exit(1)
 
-asvz_enroll(
-    args.username,
-    args.password,
-    args.weekday,
-    args.facility,
-    args.time,
-    args.sportfahrplan,
-)
-logging.info("Script successfully finished")
+    if not url_validator(args.sportfahrplan):
+        logging.error("invalid url specified")
+        exit(1)
+
+    current_time = datetime.today()
+    enrollment_time = datetime(
+        current_time.year,
+        current_time.month,
+        current_time.day,
+        time.hour,
+        time.minute,
+    )
+
+    # special case if one starts the script max 24h before the enrollement
+    # e.g enrollment at Monday 20:00, script started on Sunday 21:00
+    if current_time > enrollment_time:
+        enrollment_time += timedelta(days=1)
+        logging.info(
+            "The enrollement for today is already over. Assuming you wanted to enroll tomorrow."
+        )
+
+    logging.info("Script started")
+    waiting_fct(time)
+
+    asvz_enroll(
+        args.username,
+        args.password,
+        weekday,
+        args.facility,
+        enrollment_time,
+        args.sportfahrplan,
+    )
+    logging.info("Script successfully finished")
+
+
+if __name__ == "__main__":
+    main()
