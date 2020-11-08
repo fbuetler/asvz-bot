@@ -59,13 +59,13 @@ def waiting_fct(enrollment_time):
 
 
 def asvz_enroll(
-    username, password, weekday, facility, enrollment_time, sportfahrplan_link
+    username, password, weekday, facility, start_time, end_time, sportfahrplan_link
 ):
     logging.info("Enrollment started")
 
     logging.info(
-        "\n\tweekday: {}\n\tenrollment time: {}\n\tfacility: {}\n\tsportfahrplan: {}".format(
-            weekday, enrollment_time, facility, sportfahrplan_link
+        "\n\tweekday: {}\n\tstart time: {}\n\tend time: {}\n\tfacility: {}\n\tsportfahrplan: {}".format(
+            weekday, start_time, end_time, facility, sportfahrplan_link
         )
     )
 
@@ -87,12 +87,14 @@ def asvz_enroll(
             )
         )
         day_ele.find_element_by_xpath(
-            ".//li[@class='btn-hover-parent'][contains(., '{}')][contains(., '{}')]".format(
-                facility, enrollment_time.strftime(TIMEFORMAT)
+            ".//li[@class='btn-hover-parent'][contains(., '{}')][contains(., '{}')][contains(., '{}')]".format(
+                facility,
+                start_time.strftime(TIMEFORMAT),
+                end_time.strftime(TIMEFORMAT),
             )
         ).click()
 
-        if (enrollment_time - datetime.today()).days >= 0:
+        if (start_time - datetime.today()).days >= 0:
             xpath = (
                 "//a[@class='btn btn--block btn--icon relative btn--primary-border']"
             )
@@ -180,7 +182,12 @@ def main():
         "--weekday",
         help="Day of the week of the lesson i.e. 0-6 for Sunday-Saturday",
     )
-    parser.add_argument("-t", "--time", help="Time when the lesson starts e.g. '19:15'")
+    parser.add_argument(
+        "-s", "--starttime", help="Time when the lesson starts e.g. '19:15'"
+    )
+    parser.add_argument(
+        "-e", "--endtime", help="Time when the lesson ends e.g. '21:40'"
+    )
     parser.add_argument(
         "-f",
         "--facility",
@@ -213,9 +220,10 @@ def main():
         exit(1)
 
     try:
-        time = datetime.strptime(args.time, TIMEFORMAT)
+        start_time = datetime.strptime(args.starttime, TIMEFORMAT)
+        end_time = datetime.strptime(args.endtime, TIMEFORMAT)
     except ValueError:
-        logging.error("invalid time specified")
+        logging.error("invalid start and/or endtime specified")
         exit(1)
 
     if not url_validator(args.sportfahrplan):
@@ -223,31 +231,32 @@ def main():
         exit(1)
 
     current_time = datetime.today()
-    enrollment_time = datetime(
+    start_time = datetime(
         current_time.year,
         current_time.month,
         current_time.day,
-        time.hour,
-        time.minute,
+        start_time.hour,
+        start_time.minute,
     )
 
     # special case if one starts the script max 24h before the enrollement
     # e.g enrollment at Monday 20:00, script started on Sunday 21:00
-    if current_time > enrollment_time:
-        enrollment_time += timedelta(days=1)
+    if current_time > start_time:
+        start_time += timedelta(days=1)
         logging.info(
             "The enrollement for today is already over. Assuming you wanted to enroll tomorrow."
         )
 
     logging.info("Script started")
-    waiting_fct(time)
+    waiting_fct(start_time)
 
     asvz_enroll(
         args.username,
         args.password,
         weekday,
         args.facility,
-        enrollment_time,
+        start_time,
+        end_time,
         args.sportfahrplan,
     )
     logging.info("Script successfully finished")
