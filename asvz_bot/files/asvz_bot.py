@@ -14,6 +14,7 @@ Author: Florian Bütler
 import time
 import argparse
 import logging
+import getpass
 from datetime import datetime, timedelta
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -58,14 +59,12 @@ def waiting_fct(enrollment_time):
     return
 
 
-def asvz_enroll(
-    username, password, weekday, facility, start_time, end_time, sportfahrplan_link
-):
+def asvz_enroll(username, password, weekday, facility, start_time, sportfahrplan_link):
     logging.info("Enrollment started")
 
     logging.info(
-        "\n\tweekday: {}\n\tstart time: {}\n\tend time: {}\n\tfacility: {}\n\tsportfahrplan: {}".format(
-            weekday, start_time, end_time, facility, sportfahrplan_link
+        "\n\tweekday: {}\n\tstart time: {}\n\tfacility: {}\n\tsportfahrplan: {}".format(
+            weekday, start_time, facility, sportfahrplan_link
         )
     )
 
@@ -87,10 +86,9 @@ def asvz_enroll(
             )
         )
         day_ele.find_element_by_xpath(
-            ".//li[@class='btn-hover-parent'][contains(., '{}')][contains(., '{}')][contains(., '{}')]".format(
+            ".//li[@class='btn-hover-parent'][contains(., '{}')][contains(., '{}')]".format(
                 facility,
                 start_time.strftime(TIMEFORMAT),
-                end_time.strftime(TIMEFORMAT),
             )
         ).click()
 
@@ -176,7 +174,6 @@ def main():
     # parse args
     parser = argparse.ArgumentParser()
     parser.add_argument("-u", "--username", help="ETHZ username i.e. nethz")
-    parser.add_argument("-p", "--password", help="ETHZ password")
     parser.add_argument(
         "-w",
         "--weekday",
@@ -186,16 +183,13 @@ def main():
         "-s", "--starttime", help="Time when the lesson starts e.g. '19:15'"
     )
     parser.add_argument(
-        "-e", "--endtime", help="Time when the lesson ends e.g. '21:40'"
-    )
-    parser.add_argument(
         "-f",
         "--facility",
         help="Facility where the lesson takes place e.g. 'Sport Center Polyterrasse'",
     )
     parser.add_argument(
-        "sportfahrplan",
-        help="link to particular sport on ASVZ Sportfahrplan, e.g. https://asvz.ch/426-sportfahrplan?f[0]=sport:45743 for volleyball. Make sure there starts only one lesson for that particular time at that particular location (i.e. use ASVZ filters).",
+        "sportfahrplan_nr",
+        help="number at the end of link to particular sport on ASVZ Sportfahrplan, e.g. 45743 in https://asvz.ch/426-sportfahrplan?f[0]=sport:45743 for volleyball.",
     )
     args = parser.parse_args()
     logging.debug("Parsed arguments")
@@ -221,13 +215,8 @@ def main():
 
     try:
         start_time = datetime.strptime(args.starttime, TIMEFORMAT)
-        end_time = datetime.strptime(args.endtime, TIMEFORMAT)
     except ValueError:
         logging.error("invalid start and/or endtime specified")
-        exit(1)
-
-    if not url_validator(args.sportfahrplan):
-        logging.error("invalid url specified")
         exit(1)
 
     current_time = datetime.today()
@@ -247,17 +236,33 @@ def main():
             "The enrollement for today is already over. Assuming you wanted to enroll tomorrow."
         )
 
+    base_url = "https://asvz.ch/426-sportfahrplan?f[0]=sport:"
+
+    url = "{}{}&date={}-{:02d}-{:02d}%20{}".format(
+        base_url,
+        args.sportfahrplan_nr,
+        start_time.year,
+        start_time.month,
+        start_time.day + 1,
+        args.starttime,
+    )
+    if not url_validator(url):
+        logging.error("invalid url specified")
+        exit(1)
+    logging.info("Using URL '{}'".format(url))
+
+    password = getpass.getpass("ETHZ password:")
+
     logging.info("Script started")
     waiting_fct(start_time)
 
     asvz_enroll(
         args.username,
-        args.password,
+        password,
         weekday,
         args.facility,
         start_time,
-        end_time,
-        args.sportfahrplan,
+        url,
     )
     logging.info("Script successfully finished")
 
