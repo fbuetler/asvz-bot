@@ -52,6 +52,14 @@ logging.basicConfig(
 )
 
 
+def validate_starttime(start_time):
+    try:
+        return datetime.strptime(start_time, TIMEFORMAT)
+    except ValueError:
+        msg = "Invalid start time specified. Supported format is {}".format(TIMEFORMAT)
+        raise argparse.ArgumentTypeError(msg)
+
+
 def wait_until(enrollment_time):
     current_time = datetime.today()
 
@@ -101,8 +109,8 @@ def asvz_enroll(
     username,
     password,
     weekday,
-    facility,
     start_time,
+    facility,
     sportfahrplan_link,
 ):
     logging.info("Enrollment started")
@@ -203,68 +211,49 @@ def main():
     parser.add_argument(
         "-org",
         "--organisation",
-        help="Name of your organisation. Currently supported are: {}".format(
-            ", ".join([k for k in ORGANISATIONS.keys()])
-        ),
+        required=True,
+        choices=list(ORGANISATIONS.keys()),
+        help="Name of your organisation.",
     )
-    parser.add_argument("-u", "--username", help="Organisation username")
+    parser.add_argument(
+        "-u", "--username", required=True, type=str, help="Organisation username"
+    )
     parser.add_argument(
         "-w",
         "--weekday",
-        help="Day of the week of the lesson i.e. on of: {}".format(
-            ", ".join([k for k in WEEKDAYS.keys()])
-        ),
+        required=True,
+        choices=list(WEEKDAYS.keys()),
+        help="Day of the week of the lesson",
     )
     parser.add_argument(
-        "-s", "--starttime", help="Time when the lesson starts e.g. '19:15'"
+        "-s",
+        "--starttime",
+        required=True,
+        type=validate_starttime,
+        help="Time when the lesson starts e.g. '19:15'",
     )
     parser.add_argument(
         "-f",
         "--facility",
+        required=True,
+        type=str,
         help="Facility where the lesson takes place e.g. 'Sport Center Polyterrasse'",
     )
     parser.add_argument(
         "sportfahrplan_nr",
+        type=int,
         help="number at the end of link to particular sport on ASVZ Sportfahrplan, e.g. 45743 in https://asvz.ch/426-sportfahrplan?f[0]=sport:45743 for volleyball.",
     )
     args = parser.parse_args()
     logging.debug("Parsed arguments")
-
-    if args.organisation in ORGANISATIONS:
-        organisation = ORGANISATIONS[args.organisation]
-    else:
-        logging.error(
-            "Invalid organisation specified. Supported organisations are: {}".format(
-                ", ".join([k for k in ORGANISATIONS.keys()])
-            )
-        )
-        exit(1)
-
-    if args.weekday in WEEKDAYS:
-        weekday = WEEKDAYS[args.weekday]
-    else:
-        logging.error(
-            "Invalid weekday specified. Supported weekdays are: {}".format(
-                ", ".join([k for k in WEEKDAYS.keys()])
-            )
-        )
-        exit(1)
-
-    try:
-        start_time = datetime.strptime(args.starttime, TIMEFORMAT)
-    except ValueError:
-        logging.error(
-            "Invalid start specified. Supported format is {}".format(TIMEFORMAT)
-        )
-        exit(1)
 
     current_time = datetime.today()
     start_time = datetime(
         current_time.year,
         current_time.month,
         current_time.day,
-        start_time.hour,
-        start_time.minute,
+        args.starttime.hour,
+        args.starttime.minute,
     )
 
     # special case if one starts the script max 24h before the enrollement
@@ -275,13 +264,14 @@ def main():
             "The enrollement for today is already over. Assuming you wanted to enroll tomorrow."
         )
 
-    url = "{}{}&date={}-{:02d}-{:02d}%20{}".format(
+    url = "{}{}&date={}-{:02d}-{:02d}%20{}:{}".format(
         BASE_URL,
         args.sportfahrplan_nr,
         start_time.year,
         start_time.month,
         start_time.day + 1,
-        args.starttime,
+        args.starttime.hour,
+        args.starttime.minute,
     )
     if not url_validator(url):
         logging.error("Invalid url specified: '{}'".format(url))
@@ -291,10 +281,10 @@ def main():
 
     logging.info(
         "Summary:\n\tOrganisation: {}\n\tUsername: {}\n\tPassword: {}\n\tWeekday: {}\n\tEnrollment time: {}\n\tFacility: {}\n\tSportfahrplan: {}".format(
-            organisation,
+            args.organisation,
             args.username,
             "*" * len(password),
-            weekday,
+            args.weekday,
             start_time,
             args.facility,
             url,
@@ -305,12 +295,12 @@ def main():
     wait_until(start_time)
 
     asvz_enroll(
-        organisation,
+        args.organisation,
         args.username,
         password,
-        weekday,
-        args.facility,
+        args.weekday,
         start_time,
+        args.facility,
         url,
     )
     logging.info("Script successfully finished")
