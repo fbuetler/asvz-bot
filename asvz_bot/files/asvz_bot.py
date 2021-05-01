@@ -26,6 +26,25 @@ from validators import ValidationFailure, url as url_validator
 
 TIMEFORMAT = "%H:%M"
 
+BASE_URL = "https://asvz.ch/426-sportfahrplan?f[0]=sport:"
+
+# organisation name as dispay by SwitchAAI
+ORGANISATIONS = {
+    "ETH": "ETH Zürich",
+    "Uni Zürich": "University of Zurich",
+    "ZHAW": "ZHAW - Zürcher Hochschule für Angewandte Wissenschaften",
+}
+
+WEEKDAYS = {
+    "Mo": "Montag",
+    "Di": "Dienstag",
+    "Mi": "Mittwoch",
+    "Do": "Donnerstag",
+    "Fr": "Freitag",
+    "Sa": "Samstag",
+    "So": "Sonntag",
+}
+
 logging.basicConfig(
     format="%(asctime)s %(levelname)-8s %(message)s",
     level=logging.INFO,
@@ -33,7 +52,7 @@ logging.basicConfig(
 )
 
 
-def waiting_fct(enrollment_time):
+def wait_until(enrollment_time):
     current_time = datetime.today()
 
     logging.info(
@@ -42,7 +61,7 @@ def waiting_fct(enrollment_time):
         )
     )
 
-    login_before_enrollment_seconds = 1 * 60
+    login_before_enrollment_seconds = 1 * 59
     if (enrollment_time - current_time).seconds > login_before_enrollment_seconds:
         sleep_time = (
             enrollment_time - current_time
@@ -59,14 +78,34 @@ def waiting_fct(enrollment_time):
     return
 
 
-def asvz_enroll(username, password, weekday, facility, start_time, sportfahrplan_link):
-    logging.info("Enrollment started")
+def organisation_login(driver, organisation, username, password):
+    logging.info("Login to '{}'".format(organisation))
 
-    logging.info(
-        "\n\tweekday: {}\n\tstart time: {}\n\tfacility: {}\n\tsportfahrplan: {}".format(
-            weekday, start_time, facility, sportfahrplan_link
-        )
+    organization = driver.find_element_by_xpath(
+        "//input[@id='userIdPSelection_iddtext']"
     )
+    organization.send_keys("{}a".format(Keys.CONTROL))
+    organization.send_keys(organisation)
+    organization.send_keys(Keys.ENTER)
+
+    # apparently all organisations have the same xpath
+    driver.find_element_by_xpath("//input[@id='username']").send_keys(username)
+    driver.find_element_by_xpath("//input[@id='password']").send_keys(password)
+    driver.find_element_by_xpath("//button[@type='submit']").click()
+
+    logging.info("Submitted Login Credentials")
+
+
+def asvz_enroll(
+    organisation,
+    username,
+    password,
+    weekday,
+    facility,
+    start_time,
+    sportfahrplan_link,
+):
+    logging.info("Enrollment started")
 
     options = Options()
     options.add_argument(
@@ -141,18 +180,7 @@ def asvz_enroll(username, password, weekday, facility, start_time, sportfahrplan
             )
         ).click()
 
-        # choose organization:
-        organization = driver.find_element_by_xpath(
-            "//input[@id='userIdPSelection_iddtext']"
-        )
-        organization.send_keys("{}a".format(Keys.CONTROL))
-        organization.send_keys("ETH Zurich")
-        organization.send_keys(Keys.ENTER)
-
-        driver.find_element_by_xpath("//input[@id='username']").send_keys(username)
-        driver.find_element_by_xpath("//input[@id='password']").send_keys(password)
-        driver.find_element_by_xpath("//button[@type='submit']").click()
-        logging.info("Submitted Login Credentials")
+        organisation_login(driver, organisation, username, password)
 
         logging.info("Waiting for enrollment")
         WebDriverWait(driver, 5 * 60).until(
@@ -171,13 +199,21 @@ def asvz_enroll(username, password, weekday, facility, start_time, sportfahrplan
 
 def main():
     logging.debug("Parsing arguments")
-    # parse args
     parser = argparse.ArgumentParser()
-    parser.add_argument("-u", "--username", help="ETHZ username i.e. nethz")
+    parser.add_argument(
+        "-org",
+        "--organisation",
+        help="Name of your organisation. Currently supported are: {}".format(
+            ", ".join([k for k in ORGANISATIONS.keys()])
+        ),
+    )
+    parser.add_argument("-u", "--username", help="Organisation username")
     parser.add_argument(
         "-w",
         "--weekday",
-        help="Day of the week of the lesson i.e. 0-6 for Sunday-Saturday",
+        help="Day of the week of the lesson i.e. on of: {}".format(
+            ", ".join([k for k in WEEKDAYS.keys()])
+        ),
     )
     parser.add_argument(
         "-s", "--starttime", help="Time when the lesson starts e.g. '19:15'"
@@ -194,29 +230,32 @@ def main():
     args = parser.parse_args()
     logging.debug("Parsed arguments")
 
-    # validate args
-    if args.weekday == "0":
-        weekday = "Sonntag"
-    elif args.weekday == "1":
-        weekday = "Montag"
-    elif args.weekday == "2":
-        weekday = "Dienstag"
-    elif args.weekday == "3":
-        weekday = "Mittwoch"
-    elif args.weekday == "4":
-        weekday = "Donnerstag"
-    elif args.weekday == "5":
-        weekday = "Freitag"
-    elif args.weekday == "6":
-        weekday = "Samstag"
+    if args.organisation in ORGANISATIONS:
+        organisation = ORGANISATIONS[args.organisation]
     else:
-        logging.error("invalid weekday specified")
+        logging.error(
+            "Invalid organisation specified. Supported organisations are: {}".format(
+                ", ".join([k for k in ORGANISATIONS.keys()])
+            )
+        )
+        exit(1)
+
+    if args.weekday in WEEKDAYS:
+        weekday = WEEKDAYS[args.weekday]
+    else:
+        logging.error(
+            "Invalid weekday specified. Supported weekdays are: {}".format(
+                ", ".join([k for k in WEEKDAYS.keys()])
+            )
+        )
         exit(1)
 
     try:
         start_time = datetime.strptime(args.starttime, TIMEFORMAT)
     except ValueError:
-        logging.error("invalid start and/or endtime specified")
+        logging.error(
+            "Invalid start specified. Supported format is {}".format(TIMEFORMAT)
+        )
         exit(1)
 
     current_time = datetime.today()
@@ -236,10 +275,8 @@ def main():
             "The enrollement for today is already over. Assuming you wanted to enroll tomorrow."
         )
 
-    base_url = "https://asvz.ch/426-sportfahrplan?f[0]=sport:"
-
     url = "{}{}&date={}-{:02d}-{:02d}%20{}".format(
-        base_url,
+        BASE_URL,
         args.sportfahrplan_nr,
         start_time.year,
         start_time.month,
@@ -247,16 +284,28 @@ def main():
         args.starttime,
     )
     if not url_validator(url):
-        logging.error("invalid url specified")
+        logging.error("Invalid url specified: '{}'".format(url))
         exit(1)
-    logging.info("Using URL '{}'".format(url))
 
-    password = getpass.getpass("ETHZ password:")
+    password = getpass.getpass("Organisation password:")
+
+    logging.info(
+        "Summary:\n\tOrganisation: {}\n\tUsername: {}\n\tPassword: {}\n\tWeekday: {}\n\tEnrollment time: {}\n\tFacility: {}\n\tSportfahrplan: {}".format(
+            organisation,
+            args.username,
+            "*" * len(password),
+            weekday,
+            start_time,
+            args.facility,
+            url,
+        )
+    )
 
     logging.info("Script started")
-    waiting_fct(start_time)
+    wait_until(start_time)
 
     asvz_enroll(
+        organisation,
         args.username,
         password,
         weekday,
