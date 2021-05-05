@@ -22,7 +22,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
-from validators import ValidationFailure, url as url_validator
+from validators import url as url_validator
+from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.utils import ChromeType
 
 TIMEFORMAT = "%H:%M"
 
@@ -86,6 +88,25 @@ def wait_until(enrollment_time):
     return
 
 
+def load_chromedriver():
+    try:
+        webdriver_manager = ChromeDriverManager(chrome_type=ChromeType.CHROMIUM)
+    except:
+        pass
+
+    if webdriver_manager is None:
+        try:
+            webdriver_manager = ChromeDriverManager(chrome_type=ChromeType.GOOGLE)
+        except:
+            pass
+
+    if webdriver_manager is None:
+        logging.error("Failed to find chrome/chromium")
+        exit(1)
+
+    return webdriver_manager.install()
+
+
 def organisation_login(driver, organisation, username, password):
     logging.info("Login to '{}'".format(organisation))
 
@@ -120,7 +141,10 @@ def asvz_enroll(
         "--private"
     )  # open in private mode to avoid different login scenario
     options.add_argument("--headless")
-    driver = webdriver.Chrome(options=options)
+    driver = webdriver.Chrome(
+        load_chromedriver(),
+        options=options,
+    )
 
     try:
         driver.get(sportfahrplan_link)
@@ -290,6 +314,9 @@ def main():
             url,
         )
     )
+
+    logging.info("Downloading chromedriver for installed version of Chrome/Chromium")
+    load_chromedriver()
 
     logging.info("Script started")
     wait_until(start_time)
