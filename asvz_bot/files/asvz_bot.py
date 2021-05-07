@@ -89,6 +89,7 @@ def wait_until(enrollment_time):
 
 
 def load_chromedriver():
+    webdriver_manager = None
     try:
         webdriver_manager = ChromeDriverManager(chrome_type=ChromeType.CHROMIUM)
     except:
