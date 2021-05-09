@@ -8,7 +8,6 @@ This repo contains a script to automatically enroll to ASVZ lessons
   - based on lesson ID (for lessons visited once)
   - based on sport ID, day, time, trainer, facility (for lessons visited periodically)
 - Enroll to lesson that is already full
-- TODO: Visible test run
 - Login as a member of
   - ETH
   - UZH
