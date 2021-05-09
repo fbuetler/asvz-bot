@@ -22,4 +22,4 @@ venv
 # OS X
 .DS_Store
 
-ansible/group_vars/all/localhost.yml
+.asvz-bot.json

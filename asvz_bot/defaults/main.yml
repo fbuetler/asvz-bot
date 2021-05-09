@@ -1,4 +1,0 @@
-pi_mac_address: changeme
-motd_desc: "Default motd, set by Ansible"
-subscription_times: []
-username: changeme
