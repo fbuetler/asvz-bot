@@ -242,8 +242,8 @@ class AsvzEnroller:
 
             self.__organisation_login(driver)
             if not driver.current_url.startswith(LESSON_BASE_URL):
-                raise AsvzBotException(
-                    "Failed to authenticate. Current URL is '{}'".format(
+                logging.warn(
+                    "Authentication might have failed. Current URL is '{}'".format(
                         driver.current_url
                     )
                 )
