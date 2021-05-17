@@ -149,6 +149,7 @@ class AsvzEnroller:
         logging.info("Searching lesson on '{}'".format(sport_url))
 
         lesson_url = None
+        driver = None
         try:
             driver = AsvzEnroller.get_driver(chromedriver)
             driver.get(sport_url)
@@ -168,7 +169,8 @@ class AsvzEnroller:
                 ".//a[starts-with(@href, '{}')]".format(LESSON_BASE_URL)
             ).get_attribute("href")
         finally:
-            driver.quit()
+            if driver is not None:
+                driver.quit()
 
         return cls(chromedriver, lesson_url, creds)
 
@@ -264,6 +266,7 @@ class AsvzEnroller:
             driver.quit()
 
     def __get_enrollment_and_start_time(self):
+        driver = None
         try:
             driver = AsvzEnroller.get_driver(self.chromedriver)
             driver.get(self.lesson_url)
@@ -312,7 +315,8 @@ class AsvzEnroller:
                 )
 
         finally:
-            driver.quit()
+            if driver is not None:
+                driver.quit()
 
     def __organisation_login(self, driver):
         WebDriverWait(driver, 20).until(

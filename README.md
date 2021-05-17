@@ -23,8 +23,6 @@ You need to install the following:
 - [Python 3](https://www.python.org/downloads/)
 - [Chrome](https://support.google.com/chrome/answer/95346) or [Chromium](https://www.chromium.org/getting-involved/download-chromium)
 
-You **must not** run the script >24h before the enrollement opens.
-
 ### First time
 
 ```bash
