@@ -224,6 +224,15 @@ class AsvzEnroller:
         )
 
     def enroll(self):
+        logging.info("Checking login credentials")
+        try:
+            driver = AsvzEnroller.get_driver(self.chromedriver)
+            driver.get(self.lesson_url)
+            driver.implicitly_wait(3)
+            self.__organisation_login(driver)
+        finally:
+            driver.quit()
+
         if datetime.today() < self.enrollment_start:
             AsvzEnroller.wait_until(self.enrollment_start)
 
@@ -243,12 +252,6 @@ class AsvzEnroller:
             logging.info("Lesson has free places")
 
             self.__organisation_login(driver)
-            if not driver.current_url.startswith(LESSON_BASE_URL):
-                logging.warn(
-                    "Authentication might have failed. Current URL is '{}'".format(
-                        driver.current_url
-                    )
-                )
 
             logging.info("Waiting for enrollment")
             WebDriverWait(driver, 5 * 60).until(
@@ -354,7 +357,17 @@ class AsvzEnroller:
         )
         driver.find_element_by_xpath("//button[@type='submit']").click()
 
-        logging.info("Submitted Login Credentials")
+        logging.info("Submitted login credentials")
+        time.sleep(3)  # wait until redirect is completed
+
+        if not driver.current_url.startswith(LESSON_BASE_URL):
+            logging.warn(
+                "Authentication might have failed. Current URL is '{}'".format(
+                    driver.current_url
+                )
+            )
+        else:
+            logging.info("Valid login credentials")
 
     def __wait_for_free_places(self, driver):
         while True:
