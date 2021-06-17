@@ -68,14 +68,16 @@ class AsvzBotException(Exception):
 
 
 class CredentialsManager:
-    def __init__(self, org, uname, save_credentials):
+    def __init__(self, org, uname, password, save_credentials):
         self.credentials = self.__load()
         if self.credentials is None:
             if org is None or uname is None:
                 raise AsvzBotException("Not all required credentials are supplied")
 
             logging.info("Loading credentials from arguments")
-            password = getpass.getpass("Organisation password:")
+            if password is None:
+                password = getpass.getpass("Organisation password:")
+
             self.credentials = {
                 CREDENTIALS_ORG: org,
                 CREDENTIALS_UNAME: uname,
@@ -433,6 +435,7 @@ def main():
         help="Name of your organisation.",
     )
     parser.add_argument("-u", "--username", type=str, help="Organisation username")
+    parser.add_argument("-p", "--password", type=str, help="Organisation password")
     parser.add_argument(
         "--save-credentials",
         default=False,
@@ -486,7 +489,7 @@ def main():
     creds = None
     try:
         creds = CredentialsManager(
-            args.organisation, args.username, args.save_credentials
+            args.organisation, args.username, args.password, args.save_credentials
         ).get()
     except AsvzBotException as e:
         logging.error(e)
