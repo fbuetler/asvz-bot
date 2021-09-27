@@ -32,7 +32,7 @@ CREDENTIALS_PW = "password"
 # organisation name as dispay by SwitchAAI
 ORGANISATIONS = {
     "ETH": "ETH Zürich",
-    "Uni Zürich": "University of Zurich",
+    "University of Zurich": "University of Zurich",
     "ZHAW": "ZHAW - Zürcher Hochschule für Angewandte Wissenschaften",
 }
 
