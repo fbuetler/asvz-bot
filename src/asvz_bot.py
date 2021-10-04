@@ -145,8 +145,8 @@ class AsvzEnroller:
                 weekday_date.year,
                 weekday_date.month,
                 weekday_date.day,
-                start_time.hour,
-                start_time.minute,
+                f"{start_time.hour:02d}",
+                f"{start_time.minute:02d}"
             )
         )
         logging.info("Searching lesson on '{}'".format(sport_url))
