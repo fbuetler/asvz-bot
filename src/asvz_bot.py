@@ -31,8 +31,8 @@ CREDENTIALS_PW = "password"
 
 # organisation name as dispay by SwitchAAI
 ORGANISATIONS = {
-    "ETH": "ETH Zürich",
-    "Uni Zürich": "University of Zurich",
+    "ETH": "ETH Zurich",
+    "UZH": "University of Zurich",
     "ZHAW": "ZHAW - Zürcher Hochschule für Angewandte Wissenschaften",
 }
 
@@ -489,7 +489,7 @@ def main():
     creds = None
     try:
         creds = CredentialsManager(
-            args.organisation, args.username, args.password, args.save_credentials
+            ORGANISATIONS[args.organisation], args.username, args.password, args.save_credentials
         ).get()
     except AsvzBotException as e:
         logging.error(e)
