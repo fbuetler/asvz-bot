@@ -29,7 +29,7 @@ CREDENTIALS_ORG = "organisation"
 CREDENTIALS_UNAME = "username"
 CREDENTIALS_PW = "password"
 
-# organisation name as dispay by SwitchAAI
+# organisation name as displayed by SwitchAAI
 ORGANISATIONS = {
     "ETH": "ETH Zurich",
     "UZH": "University of Zurich",
