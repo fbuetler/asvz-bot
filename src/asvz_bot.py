@@ -31,8 +31,8 @@ CREDENTIALS_PW = "password"
 
 # organisation name as displayed by SwitchAAI
 ORGANISATIONS = {
-    "ETH": "ETH Zurich",
-    "UZH": "University of Zurich",
+    "ETH": "ETH Zürich",
+    "UZH": "Universität Zürich",
     "ZHAW": "ZHAW - Zürcher Hochschule für Angewandte Wissenschaften",
 }
 
@@ -182,6 +182,7 @@ class AsvzEnroller:
         options = Options()
         options.add_argument("--private")
         options.add_argument("--headless")
+        options.add_experimental_option('prefs', {'intl.accept_languages': 'de,de_CH'})
         return webdriver.Chrome(
             chromedriver,
             options=options,
