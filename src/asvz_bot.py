@@ -79,7 +79,7 @@ class CredentialsManager:
                 password = getpass.getpass("Organisation password:")
 
             self.credentials = {
-                CREDENTIALS_ORG: org,
+                CREDENTIALS_ORG: ORGANISATIONS[org],
                 CREDENTIALS_UNAME: uname,
                 CREDENTIALS_PW: password,
             }
@@ -88,7 +88,7 @@ class CredentialsManager:
                 "Overwriting credentials loaded from local store with arguments"
             )
             if org is not None:
-                self.credentials[CREDENTIALS_ORG] = org
+                self.credentials[CREDENTIALS_ORG] = ORGANISATIONS[org]
             if uname is not None:
                 self.credentials[CREDENTIALS_UNAME] = uname
 
@@ -490,7 +490,7 @@ def main():
     creds = None
     try:
         creds = CredentialsManager(
-            ORGANISATIONS[args.organisation], args.username, args.password, args.save_credentials
+            args.organisation, args.username, args.password, args.save_credentials
         ).get()
     except AsvzBotException as e:
         logging.error(e)
