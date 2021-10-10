@@ -92,7 +92,8 @@ class CredentialsManager:
             if uname is not None:
                 self.credentials[CREDENTIALS_UNAME] = uname
 
-            password = getpass.getpass("Organisation password:")
+            if password is None:
+                password = getpass.getpass("Organisation password:")
             if password is not None and len(password) > 0:
                 self.credentials[CREDENTIALS_PW] = password
         else:
