@@ -365,7 +365,7 @@ class AsvzEnroller:
         time.sleep(3)  # wait until redirect is completed
 
         if not driver.current_url.startswith(LESSON_BASE_URL):
-            logging.warn(
+            logging.warning(
                 "Authentication might have failed. Current URL is '{}'".format(
                     driver.current_url
                 )
