@@ -29,10 +29,10 @@ CREDENTIALS_ORG = "organisation"
 CREDENTIALS_UNAME = "username"
 CREDENTIALS_PW = "password"
 
-# organisation name as dispay by SwitchAAI
+# organisation name as displayed by SwitchAAI
 ORGANISATIONS = {
     "ETH": "ETH Zürich",
-    "Uni Zürich": "University of Zurich",
+    "UZH": "Universität Zürich",
     "ZHAW": "ZHAW - Zürcher Hochschule für Angewandte Wissenschaften",
 }
 
@@ -79,7 +79,7 @@ class CredentialsManager:
                 password = getpass.getpass("Organisation password:")
 
             self.credentials = {
-                CREDENTIALS_ORG: org,
+                CREDENTIALS_ORG: ORGANISATIONS[org],
                 CREDENTIALS_UNAME: uname,
                 CREDENTIALS_PW: password,
             }
@@ -88,7 +88,7 @@ class CredentialsManager:
                 "Overwriting credentials loaded from local store with arguments"
             )
             if org is not None:
-                self.credentials[CREDENTIALS_ORG] = org
+                self.credentials[CREDENTIALS_ORG] = ORGANISATIONS[org]
             if uname is not None:
                 self.credentials[CREDENTIALS_UNAME] = uname
 
@@ -182,6 +182,7 @@ class AsvzEnroller:
         options = Options()
         options.add_argument("--private")
         options.add_argument("--headless")
+        options.add_experimental_option('prefs', {'intl.accept_languages': 'de,de_CH'})
         return webdriver.Chrome(
             chromedriver,
             options=options,
