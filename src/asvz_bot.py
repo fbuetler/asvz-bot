@@ -389,7 +389,7 @@ class AsvzEnroller:
                     "Stopping enrollment because lesson has started."
                 )
 
-            retry_interval_sec = 1 * 60
+            retry_interval_sec = 1 * 30
             logging.info(
                 "Lesson is booked out. Rechecking in {} secs..".format(
                     retry_interval_sec
