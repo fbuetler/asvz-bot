@@ -1,3 +1,2 @@
-selenium==3.141.0
-validators==0.18.1
-webdriver-manager==3.4.1
+selenium==4.1.0
+webdriver-manager==3.5.2
