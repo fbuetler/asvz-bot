@@ -53,6 +53,7 @@ FACILITIES = {
     "Sport Center Hönggerberg": 45598,
     "Sport Center Fluntern": 45575,
     "Sport Center Winterthur": 45610,
+    "Rämistrasse 80": 45574,
     "PH Zürich": 45583,
     "Wädenswil Kraft-/Cardio-Center": 45613,
     "Online": 294542,
