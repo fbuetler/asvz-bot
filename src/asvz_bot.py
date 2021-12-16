@@ -231,7 +231,8 @@ class AsvzEnroller:
             driver.implicitly_wait(3)
             self.__organisation_login(driver)
         finally:
-            driver.quit()
+            if driver is not None:
+                driver.quit()
 
         if datetime.today() < self.enrollment_start:
             AsvzEnroller.wait_until(self.enrollment_start)
@@ -266,7 +267,8 @@ class AsvzEnroller:
 
             logging.info("Successfully enrolled. Train hard and have fun!")
         finally:
-            driver.quit()
+            if driver is not None:
+                driver.quit()
 
     def __get_enrollment_and_start_time(self):
         driver = None
@@ -322,6 +324,7 @@ class AsvzEnroller:
                 driver.quit()
 
     def __organisation_login(self, driver):
+        logging.debug("Start login process")
         WebDriverWait(driver, 20).until(
             EC.element_to_be_clickable(
                 (
