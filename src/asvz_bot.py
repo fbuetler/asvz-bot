@@ -138,18 +138,10 @@ class AsvzEnroller:
         weekday_int = time.strptime(WEEKDAYS[weekday], "%A").tm_wday
         weekday_date = today + timedelta((weekday_int - today.weekday()) % 7)
 
-        sport_url = (
-            "{}?f[0]=sport:{}&f[1]=facility:{}&date={}-{:02d}-{:02d}%20{}:{}".format(
-                SPORTFAHRPLAN_BASE_URL,
-                sport_id,
-                FACILITIES[facility],
-                weekday_date.year,
-                weekday_date.month,
-                weekday_date.day,
-                start_time.hour,
-                start_time.minute,
-            )
-        )
+        sport_url = f"{SPORTFAHRPLAN_BASE_URL}?"
+        +f"f[0]=sport:{sport_id}&"
+        +f"f[1]=facility:{FACILITIES[facility]}&"
+        +f"date={weekday_date.year}-{weekday_date.month:02d}-{weekday_date.day:02d}%20{start_time.hour:02d}:{start_time.minute:02d}"
         logging.info("Searching lesson on '{}'".format(sport_url))
 
         lesson_url = None
