@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -175,9 +176,9 @@ class AsvzEnroller:
         options = Options()
         options.add_argument("--private")
         options.add_argument("--headless")
-        options.add_experimental_option('prefs', {'intl.accept_languages': 'de,de_CH'})
+        options.add_experimental_option("prefs", {"intl.accept_languages": "de,de_CH"})
         return webdriver.Chrome(
-            chromedriver,
+            service=Service(chromedriver),
             options=options,
         )
 
