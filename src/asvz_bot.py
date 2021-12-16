@@ -53,6 +53,7 @@ FACILITIES = {
     "Sport Center Hönggerberg": 45598,
     "Sport Center Fluntern": 45575,
     "Sport Center Winterthur": 45610,
+    "PH Zürich": 45583,
     "Wädenswil Kraft-/Cardio-Center": 45613,
     "Online": 294542,
 }
@@ -152,18 +153,19 @@ class AsvzEnroller:
             driver.get(sport_url)
             driver.implicitly_wait(3)
 
-            day_ele = driver.find_element_by_xpath(
-                "//div[@class='teaser-list-calendar__day']"
+            day_ele = driver.find_element(
+                By.XPATH, "//div[@class='teaser-list-calendar__day']"
             )
 
-            lesson = day_ele.find_element_by_xpath(
+            lesson = day_ele.find_element(
+                By.XPATH,
                 ".//li[@class='btn-hover-parent'][contains(., '{}')]".format(
                     trainer,
-                )
+                ),
             )
 
-            lesson_url = lesson.find_element_by_xpath(
-                ".//a[starts-with(@href, '{}')]".format(LESSON_BASE_URL)
+            lesson_url = lesson.find_element(
+                By.XPATH, ".//a[starts-with(@href, '{}')]".format(LESSON_BASE_URL)
             ).get_attribute("href")
         finally:
             if driver is not None:
@@ -273,8 +275,8 @@ class AsvzEnroller:
             driver.get(self.lesson_url)
             driver.implicitly_wait(3)
 
-            enrollment_interval_raw = driver.find_element_by_xpath(
-                "//dl[contains(., 'Anmeldezeitraum')]/dd"
+            enrollment_interval_raw = driver.find_element(
+                By.XPATH, "//dl[contains(., 'Anmeldezeitraum')]/dd"
             )
             # enrollment_interval_raw is like 'So, 09.05.2021 06:35 - Mo, 10.05.2021 07:05'
             enrollment_start_raw = (
@@ -295,8 +297,8 @@ class AsvzEnroller:
                     )
                 )
 
-            lesson_interval_raw = driver.find_element_by_xpath(
-                "//dl[contains(., 'Datum/Zeit')]/dd"
+            lesson_interval_raw = driver.find_element(
+                By.XPATH, "//dl[contains(., 'Datum/Zeit')]/dd"
             )
             # lesson_interval_raw is like 'Mo, 10.05.2021 06:55 - 08:05'
             lesson_start_raw = (
@@ -339,21 +341,21 @@ class AsvzEnroller:
 
         logging.info("Login to '{}'".format(self.creds[CREDENTIALS_ORG]))
 
-        organization = driver.find_element_by_xpath(
-            "//input[@id='userIdPSelection_iddtext']"
+        organization = driver.find_element(
+            By.XPATH, "//input[@id='userIdPSelection_iddtext']"
         )
         organization.send_keys("{}a".format(Keys.CONTROL))
         organization.send_keys(self.creds[CREDENTIALS_ORG])
         organization.send_keys(Keys.ENTER)
 
         # apparently all organisations have the same xpath
-        driver.find_element_by_xpath("//input[@id='username']").send_keys(
+        driver.find_element(By.XPATH, "//input[@id='username']").send_keys(
             self.creds[CREDENTIALS_UNAME]
         )
-        driver.find_element_by_xpath("//input[@id='password']").send_keys(
+        driver.find_element(By.XPATH, "//input[@id='password']").send_keys(
             self.creds[CREDENTIALS_PW]
         )
-        driver.find_element_by_xpath("//button[@type='submit']").click()
+        driver.find_element(By.XPATH, "//button[@type='submit']").click()
 
         logging.info("Submitted login credentials")
         time.sleep(3)  # wait until redirect is completed
@@ -370,8 +372,9 @@ class AsvzEnroller:
     def __wait_for_free_places(self, driver):
         while True:
             try:
-                driver.find_element_by_xpath(
-                    "//alert[@class='ng-star-inserted'][contains(., 'ausgebucht')]"
+                driver.find_element(
+                    By.XPATH,
+                    "//alert[@class='ng-star-inserted'][contains(., 'ausgebucht')]",
                 )
             except NoSuchElementException:
                 # has free places
