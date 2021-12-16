@@ -65,6 +65,9 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 
+ISSUES_URL = "https://github.com/fbuetler/asvz-bot/issues"
+NO_SUCH_ELEMENT_ERR_MSG = f"Element on website not found! This may happen when the website was updated recently. Please report this incident to: {ISSUES_URL}"
+
 
 class AsvzBotException(Exception):
     pass
@@ -166,10 +169,17 @@ class AsvzEnroller:
                     trainer,
                 ),
             )
+            logging.debug("Found lesson")
 
             lesson_url = lesson.find_element(
                 By.XPATH, ".//a[starts-with(@href, '{}')]".format(LESSON_BASE_URL)
             ).get_attribute("href")
+            logging.debug(f"Found lesson url: {lesson_url}")
+        except NoSuchElementException as e:
+            logging.error(
+                "Lesson not found! Make sure the lesson is visible on the above URL and the name of the trainer matches."
+            )
+            exit(1)
         finally:
             if driver is not None:
                 driver.quit()
@@ -233,6 +243,9 @@ class AsvzEnroller:
             driver.get(self.lesson_url)
             driver.implicitly_wait(3)
             self.__organisation_login(driver)
+        except NoSuchElementException as e:
+            logging.error(NO_SUCH_ELEMENT_ERR_MSG)
+            raise e
         finally:
             if driver is not None:
                 driver.quit()
@@ -269,6 +282,9 @@ class AsvzEnroller:
             time.sleep(5)
 
             logging.info("Successfully enrolled. Train hard and have fun!")
+        except NoSuchElementException as e:
+            logging.error(NO_SUCH_ELEMENT_ERR_MSG)
+            raise e
         finally:
             if driver is not None:
                 driver.quit()
@@ -321,7 +337,9 @@ class AsvzEnroller:
                 raise AsvzBotException(
                     "Failed to parse lesson start time: '{}'".format(lesson_start_raw)
                 )
-
+        except NoSuchElementException as e:
+            logging.error(NO_SUCH_ELEMENT_ERR_MSG)
+            raise e
         finally:
             if driver is not None:
                 driver.quit()
