@@ -35,6 +35,7 @@ ORGANISATIONS = {
     "ETH": "ETH Zürich",
     "UZH": "Universität Zürich",
     "ZHAW": "ZHAW - Zürcher Hochschule für Angewandte Wissenschaften",
+    "ASVZ": "ASVZ",
 }
 
 WEEKDAYS = {
@@ -354,32 +355,50 @@ class AsvzEnroller:
                 )
             )
         ).click()
-        WebDriverWait(driver, 20).until(
-            EC.element_to_be_clickable(
-                (
-                    By.XPATH,
-                    "//button[@class='btn btn-warning btn-block' and @title='SwitchAai Account Login']",
-                )
-            )
-        ).click()
 
         logging.info("Login to '{}'".format(self.creds[CREDENTIALS_ORG]))
+        if self.creds[CREDENTIALS_ORG] == "ASVZ":
+            driver.find_element(By.XPATH, "//input[@id='AsvzId']").send_keys(
+                self.creds[CREDENTIALS_UNAME]
+            )
+            driver.find_element(By.XPATH, "//input[@id='Password']").send_keys(
+                self.creds[CREDENTIALS_PW]
+            )
 
-        organization = driver.find_element(
-            By.XPATH, "//input[@id='userIdPSelection_iddtext']"
-        )
-        organization.send_keys("{}a".format(Keys.CONTROL))
-        organization.send_keys(self.creds[CREDENTIALS_ORG])
-        organization.send_keys(Keys.ENTER)
+            button = WebDriverWait(driver, 20).until(
+                EC.element_to_be_clickable(
+                    (
+                        By.XPATH,
+                        "//button[@type='submit' and text()='Login']",
+                    )
+                )
+            ).click()
+        else:
+            WebDriverWait(driver, 20).until(
+                EC.element_to_be_clickable(
+                    (
+                        By.XPATH,
+                        "//button[@class='btn btn-warning btn-block' and @title='SwitchAai Account Login']",
+                    )
+                )
+            ).click()
 
-        # apparently all organisations have the same xpath
-        driver.find_element(By.XPATH, "//input[@id='username']").send_keys(
-            self.creds[CREDENTIALS_UNAME]
-        )
-        driver.find_element(By.XPATH, "//input[@id='password']").send_keys(
-            self.creds[CREDENTIALS_PW]
-        )
-        driver.find_element(By.XPATH, "//button[@type='submit']").click()
+
+            organization = driver.find_element(
+                By.XPATH, "//input[@id='userIdPSelection_iddtext']"
+            )
+            organization.send_keys("{}a".format(Keys.CONTROL))
+            organization.send_keys(self.creds[CREDENTIALS_ORG])
+            organization.send_keys(Keys.ENTER)
+
+            # apparently all organisations have the same xpath
+            driver.find_element(By.XPATH, "//input[@id='username']").send_keys(
+                self.creds[CREDENTIALS_UNAME]
+            )
+            driver.find_element(By.XPATH, "//input[@id='password']").send_keys(
+                self.creds[CREDENTIALS_PW]
+            )
+            driver.find_element(By.XPATH, "//button[@type='submit']").click()
 
         logging.info("Submitted login credentials")
         time.sleep(3)  # wait until redirect is completed
