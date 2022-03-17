@@ -12,6 +12,7 @@ This repo contains a script to automatically enroll to ASVZ lessons
   - ETH
   - UZH
   - ZHAW
+  - ASVZ
 - Save your credentials locally and reuse them on the next run
 
 ## Run
