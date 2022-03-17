@@ -297,6 +297,14 @@ class AsvzEnroller:
             driver.get(self.lesson_url)
             driver.implicitly_wait(3)
 
+            try:
+                driver.find_element(By.TAG_NAME, "app-page-not-found")
+            except NoSuchElementException:
+                pass
+            else:
+                logging.error("Lesson not found! Please check your lesson details")
+                raise Exception("Lesson not found")
+
             enrollment_interval_raw = driver.find_element(
                 By.XPATH, "//dl[contains(., 'Anmeldezeitraum')]/dd"
             )
