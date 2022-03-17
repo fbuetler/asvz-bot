@@ -365,14 +365,18 @@ class AsvzEnroller:
                 self.creds[CREDENTIALS_PW]
             )
 
-            button = WebDriverWait(driver, 20).until(
-                EC.element_to_be_clickable(
-                    (
-                        By.XPATH,
-                        "//button[@type='submit' and text()='Login']",
+            button = (
+                WebDriverWait(driver, 20)
+                .until(
+                    EC.element_to_be_clickable(
+                        (
+                            By.XPATH,
+                            "//button[@type='submit' and text()='Login']",
+                        )
                     )
                 )
-            ).click()
+                .click()
+            )
         else:
             WebDriverWait(driver, 20).until(
                 EC.element_to_be_clickable(
@@ -382,7 +386,6 @@ class AsvzEnroller:
                     )
                 )
             ).click()
-
 
             organization = driver.find_element(
                 By.XPATH, "//input[@id='userIdPSelection_iddtext']"
