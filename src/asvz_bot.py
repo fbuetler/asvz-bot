@@ -226,8 +226,6 @@ class AsvzEnroller:
         self.lesson_url = lesson_url
         self.creds = creds
 
-        self.__get_enrollment_and_start_time()
-
         logging.info(
             "Summary:\n\tOrganisation: {}\n\tUsername: {}\n\tPassword: {}\n\tLesson: {}".format(
                 self.creds[CREDENTIALS_ORG],
@@ -236,6 +234,8 @@ class AsvzEnroller:
                 self.lesson_url,
             )
         )
+
+        self.__get_enrollment_and_start_time()
 
     def enroll(self):
         logging.info("Checking login credentials")
