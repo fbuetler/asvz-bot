@@ -306,7 +306,7 @@ class AsvzEnroller:
                 raise Exception("Lesson not found")
 
             enrollment_interval_raw = driver.find_element(
-                By.XPATH, "//dl[contains(., 'Anmeldezeitraum')]/dd"
+                By.XPATH, "//dl[contains(., 'Einschreibezeitraum')]/dd"
             )
             # enrollment_interval_raw is like 'So, 09.05.2021 06:35 - Mo, 10.05.2021 07:05'
             enrollment_start_raw = (
