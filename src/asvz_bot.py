@@ -48,6 +48,10 @@ WEEKDAYS = {
     "Su": "Sunday",
 }
 
+LEVELS = {"Alle": 2104,
+          "Mittlere":880,
+          "Fortgeschrittene":726}
+          
 FACILITIES = {
     "Sport Center Polyterrasse": 45594,
     "Sport Center Irchel": 45577,
@@ -139,16 +143,20 @@ class CredentialsManager:
 class AsvzEnroller:
     @classmethod
     def from_lesson_attributes(
-        cls, chromedriver, weekday, start_time, trainer, facility, sport_id, creds
+        cls, chromedriver, weekday, start_time, trainer, facility, level, sport_id, creds
     ):
         today = datetime.today()
         weekday_int = time.strptime(WEEKDAYS[weekday], "%A").tm_wday
         weekday_date = today + timedelta((weekday_int - today.weekday()) % 7)
-
+        if level is not None:
+            str_level = f"f[2]=niveau:{LEVELS[level]}&"
+        else:
+            str_level = ''
         sport_url = (
             f"{SPORTFAHRPLAN_BASE_URL}?"
             + f"f[0]=sport:{sport_id}&"
             + f"f[1]=facility:{FACILITIES[facility]}&"
+            + str_level
             + f"date={weekday_date.year}-{weekday_date.month:02d}-{weekday_date.day:02d}%20{start_time.hour:02d}:{start_time.minute:02d}"
         )
         logging.info("Searching lesson on '{}'".format(sport_url))
@@ -531,6 +539,13 @@ def main():
         help="Facility where the lesson takes place e.g. 'Sport Center Polyterrasse'",
     )
     parser_training.add_argument(
+        "-l",
+        "--level",
+        required=False,
+        choices=list(LEVELS.keys()),
+        help="Level of the lesson e.g. 'Alle'",
+    )
+    parser_training.add_argument(
         "sport_id",
         type=int,
         help="Number at the end of link to a particular sport on ASVZ Sportfahrplan, e.g. 45743 in https://asvz.ch/426-sportfahrplan?f[0]=sport:45743 for volleyball",
@@ -560,6 +575,7 @@ def main():
             args.start_time,
             args.trainer,
             args.facility,
+            args.level,
             args.sport_id,
             creds,
         )
