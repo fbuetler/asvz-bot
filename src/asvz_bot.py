@@ -48,10 +48,8 @@ WEEKDAYS = {
     "Su": "Sunday",
 }
 
-LEVELS = {"Alle": 2104,
-          "Mittlere":880,
-          "Fortgeschrittene":726}
-          
+LEVELS = {"Alle": 2104, "Mittlere": 880, "Fortgeschrittene": 726}
+
 FACILITIES = {
     "Sport Center Polyterrasse": 45594,
     "Sport Center Irchel": 45577,
@@ -143,7 +141,15 @@ class CredentialsManager:
 class AsvzEnroller:
     @classmethod
     def from_lesson_attributes(
-        cls, chromedriver, weekday, start_time, trainer, facility, level, sport_id, creds
+        cls,
+        chromedriver,
+        weekday,
+        start_time,
+        trainer,
+        facility,
+        level,
+        sport_id,
+        creds,
     ):
         today = datetime.today()
         weekday_int = time.strptime(WEEKDAYS[weekday], "%A").tm_wday
@@ -151,7 +157,7 @@ class AsvzEnroller:
         if level is not None:
             str_level = f"f[2]=niveau:{LEVELS[level]}&"
         else:
-            str_level = ''
+            str_level = ""
         sport_url = (
             f"{SPORTFAHRPLAN_BASE_URL}?"
             + f"f[0]=sport:{sport_id}&"
