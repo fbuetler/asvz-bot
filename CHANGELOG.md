@@ -7,9 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 11.10.22
+
 ### Added
 
 - Added CHANGELOG.md
+- Added optional selection filter based on training level from [CyprienHoelzl](https://github.com/CyprienHoelzl)
 
 ## [1.2.1] - 27.09.22
 
