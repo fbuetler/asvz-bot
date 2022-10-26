@@ -35,6 +35,7 @@ ORGANISATIONS = {
     "ETH": "ETH Zürich",
     "UZH": "Universität Zürich",
     "ZHAW": "ZHAW - Zürcher Hochschule für Angewandte Wissenschaften",
+    "PHZH": "PH Zürich - Pädagogische Hochschule Zürich",
     "ASVZ": "ASVZ",
 }
 

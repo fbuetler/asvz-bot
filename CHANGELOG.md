@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 26.10.22
+
+### Added
+
+- Added PHZH login suuport (#3).
+
 ## [1.3.0] - 11.10.22
 
 ### Added

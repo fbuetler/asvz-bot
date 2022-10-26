@@ -6,12 +6,13 @@ This repo contains a script to automatically enroll to ASVZ lessons
 
 - Enroll to lesson
   - based on lesson ID (for lessons visited once)
-  - based on sport ID, day, time, trainer, facility (for lessons visited periodically)
+  - based on sport ID, day, time, trainer, level, facility (for lessons visited periodically)
 - Enroll to lesson that is already full
 - Login as a member of
   - ETH
   - UZH
   - ZHAW
+  - PHZH
   - ASVZ
 - Save your credentials locally and reuse them on the next run
 
@@ -60,7 +61,13 @@ python3 asvz_bot.py lesson 196346
 Enroll by lesson attributes and use saved credentials
 
 ```bash
-python3 asvz_bot.py training --weekday "Mo" --start-time "18:15" --trainer "Karin Hollenstein" --facility "Sport Center Hönggerberg" 45743
+python3 asvz_bot.py training \
+  --weekday "Mo" \
+  --start-time "18:15" \
+  --trainer "Karin Hollenstein" \
+  --level "Fortgeschrittene" \
+  --facility "Sport Center Hönggerberg" \
+  45743
 ```
 
 ## Development
