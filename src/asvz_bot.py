@@ -15,7 +15,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.utils import ChromeType
 
@@ -276,28 +276,38 @@ class AsvzEnroller:
 
             logging.info("Starting enrollment")
 
-            if self.enrollment_start < datetime.today():
-                logging.info(
-                    "Enrollment is already open. Checking for available places."
-                )
-                self.__wait_for_free_places(driver)
-
-            logging.info("Lesson has free places")
-
-            self.__organisation_login(driver)
-
-            logging.info("Waiting for enrollment")
-            WebDriverWait(driver, 5 * 60).until(
-                EC.element_to_be_clickable(
-                    (
-                        By.XPATH,
-                        "//button[@id='btnRegister' and @class='btn-primary btn enrollmentPlacePadding ng-star-inserted']",
+            enrolled = False
+            while not enrolled:
+                if self.enrollment_start < datetime.today():
+                    logging.info(
+                        "Enrollment is already open. Checking for available places."
                     )
-                )
-            ).click()
-            time.sleep(5)
+                    self.__wait_for_free_places(driver)
 
-            logging.info("Successfully enrolled. Train hard and have fun!")
+                logging.info("Lesson has free places")
+
+                self.__organisation_login(driver)
+
+                try:
+                    logging.info("Waiting for enrollment")
+                    WebDriverWait(driver, 5 * 60).until(
+                        EC.element_to_be_clickable(
+                            (
+                                By.XPATH,
+                                "//button[@id='btnRegister' and @class='btn-primary btn enrollmentPlacePadding ng-star-inserted']",
+                            )
+                        )
+                    ).click()
+                    time.sleep(5)
+                except TimeoutException as e:
+                    logging.info(
+                        "Place was already taken in the meantime. Rechecking for available places."
+                    )
+                    continue
+
+                logging.info("Successfully enrolled. Train hard and have fun!")
+                enrolled = True
+
         except NoSuchElementException as e:
             logging.error(NO_SUCH_ELEMENT_ERR_MSG)
             raise e

@@ -7,11 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.1] - 03.11.22
+
+### Fixed
+
+- Retry enrollment when a lessons is full, a place gets free and enrollment is tried but some else was faster (#13).
+
 ## [1.4.0] - 26.10.22
 
 ### Added
 
-- Added PHZH login suuport (#3).
+- Added PHZH login support (#12).
 
 ## [1.3.0] - 11.10.22
 
