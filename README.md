@@ -15,6 +15,10 @@ This repo contains a script to automatically enroll to ASVZ lessons
   - PHZH
   - ASVZ
 - Save your credentials locally and reuse them on the next run
+- Note: 
+    UZH, ZHAW and PHZH use SWITCH edu-ID as login (*email* + password).
+    ETH uses own login (*nethz* + password)
+    ASVZ uses own login (*ASVZ-ID* + password)
 
 ## Run
 
