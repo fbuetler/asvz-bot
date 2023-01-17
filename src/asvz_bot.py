@@ -384,7 +384,7 @@ class AsvzEnroller:
             EC.element_to_be_clickable(
                 (
                     By.XPATH,
-                    "//button[@class='btn btn-default ng-star-inserted' and @title='Login']",
+                    "//button[@class='btn btn-default' and @title='Login']",
                 )
             )
         ).click()
