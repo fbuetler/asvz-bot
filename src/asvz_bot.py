@@ -5,6 +5,7 @@ import argparse
 import getpass
 import json
 import logging
+import re
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -250,8 +251,6 @@ class AsvzEnroller:
             )
         )
 
-        self.__get_enrollment_and_start_time()
-
     def enroll(self):
         logging.info("Checking login credentials")
         try:
@@ -259,6 +258,10 @@ class AsvzEnroller:
             driver.get(self.lesson_url)
             driver.implicitly_wait(3)
             self.__organisation_login(driver)
+            (
+                self.enrollment_start,
+                self.lesson_start,
+            ) = AsvzEnroller.__get_enrollment_and_start_time(driver)
         except NoSuchElementException as e:
             logging.error(NO_SUCH_ELEMENT_ERR_MSG)
             raise e
@@ -294,7 +297,7 @@ class AsvzEnroller:
                         EC.element_to_be_clickable(
                             (
                                 By.XPATH,
-                                "//button[@id='btnRegister' and @class='btn-primary btn enrollmentPlacePadding ng-star-inserted']",
+                                "//button[@id='btnRegister' and @class='btn-primary btn enrollmentPlacePadding']",
                             )
                         )
                     ).click()
@@ -315,13 +318,9 @@ class AsvzEnroller:
             if driver is not None:
                 driver.quit()
 
-    def __get_enrollment_and_start_time(self):
-        driver = None
+    @staticmethod
+    def __get_enrollment_and_start_time(driver):
         try:
-            driver = AsvzEnroller.get_driver(self.chromedriver)
-            driver.get(self.lesson_url)
-            driver.implicitly_wait(3)
-
             try:
                 driver.find_element(By.TAG_NAME, "app-page-not-found")
             except NoSuchElementException:
@@ -330,53 +329,66 @@ class AsvzEnroller:
                 logging.error("Lesson not found! Please check your lesson details")
                 raise Exception("Lesson not found")
 
-            enrollment_interval_raw = driver.find_element(
-                By.XPATH, "//dl[contains(., 'Einschreibezeitraum')]/dd"
-            )
-            # enrollment_interval_raw is like 'So, 09.05.2021 06:35 - Mo, 10.05.2021 07:05'
-            enrollment_start_raw = (
-                enrollment_interval_raw.get_attribute("innerHTML")
-                .split("-")[0]
-                .split(",")[1]
-                .strip()
-            )
-            try:
-                self.enrollment_start = datetime.strptime(
-                    enrollment_start_raw, "%d.%m.%Y %H:%M"
-                )
-            except ValueError as e:
-                logging.error(e)
-                raise AsvzBotException(
-                    "Failed to parse enrollment start time: '{}'".format(
-                        enrollment_start_raw
-                    )
-                )
-
-            lesson_interval_raw = driver.find_element(
-                By.XPATH, "//dl[contains(., 'Datum/Zeit')]/dd"
-            )
-            # lesson_interval_raw is like 'Mo, 10.05.2021 06:55 - 08:05'
-            lesson_start_raw = (
-                lesson_interval_raw.get_attribute("innerHTML")
-                .split("-")[0]
-                .split(",")[1]
-                .strip()
-            )
-            try:
-                self.lesson_start = datetime.strptime(
-                    lesson_start_raw, "%d.%m.%Y %H:%M"
-                )
-            except ValueError as e:
-                logging.error(e)
-                raise AsvzBotException(
-                    "Failed to parse lesson start time: '{}'".format(lesson_start_raw)
-                )
+            enrollment_start = AsvzEnroller.__get_enrollment_time(driver)
+            lesson_start = AsvzEnroller.__get_lesson_time(driver)
         except NoSuchElementException as e:
             logging.error(NO_SUCH_ELEMENT_ERR_MSG)
             raise e
-        finally:
-            if driver is not None:
-                driver.quit()
+
+        return (enrollment_start, lesson_start)
+
+    @staticmethod
+    def __get_enrollment_time(driver):
+        # requires the user to be logged in, as the intro text is only available then
+        try:
+            introduction_text = driver.find_element(
+                By.XPATH, "//span[contains(., 'Online-Einschreibungen')]"
+            ).get_attribute("innerHTML")
+        except NoSuchElementException as e:
+            logging.info(
+                "No enrollment time found. Assuming enrollment is already open."
+            )
+            # setting enrollment to some date in the past
+            return datetime.today() - timedelta(days=1)
+
+        # assumes enrollment start is the first date
+        enrollment_start_raw = re.findall(
+            "\d{2}\.\d{2}\.\d{4}\s\d{2}:\d{2}", introduction_text
+        )[0]
+
+        # enrollment_start_raw is like '17.01.2023 20:00'
+        enrollment_start_raw = enrollment_start_raw.strip()
+        try:
+            enrollment_start = datetime.strptime(enrollment_start_raw, "%d.%m.%Y %H:%M")
+        except ValueError as e:
+            logging.error(e)
+            raise AsvzBotException(
+                "Failed to parse enrollment start time: '{}'".format(
+                    enrollment_start_raw
+                )
+            )
+        return enrollment_start
+
+    @staticmethod
+    def __get_lesson_time(driver):
+        lesson_interval_raw = driver.find_element(
+            By.XPATH, "//dl[contains(., 'Datum/Zeit')]/dd"
+        )
+        # lesson_interval_raw is like 'Mo, 10.05.2021 06:55 - 08:05'
+        lesson_start_raw = (
+            lesson_interval_raw.get_attribute("innerHTML")
+            .split("-")[0]
+            .split(",")[1]
+            .strip()
+        )
+        try:
+            lesson_start = datetime.strptime(lesson_start_raw, "%d.%m.%Y %H:%M")
+        except ValueError as e:
+            logging.error(e)
+            raise AsvzBotException(
+                "Failed to parse lesson start time: '{}'".format(lesson_start_raw)
+            )
+        return lesson_start
 
     def __organisation_login(self, driver):
         logging.debug("Start login process")
@@ -398,18 +410,14 @@ class AsvzEnroller:
                 self.creds[CREDENTIALS_PW]
             )
 
-            button = (
-                WebDriverWait(driver, 20)
-                .until(
-                    EC.element_to_be_clickable(
-                        (
-                            By.XPATH,
-                            "//button[@type='submit' and text()='Login']",
-                        )
+            WebDriverWait(driver, 20).until(
+                EC.element_to_be_clickable(
+                    (
+                        By.XPATH,
+                        "//button[@type='submit' and text()='Login']",
                     )
                 )
-                .click()
-            )
+            ).click()
         else:
             WebDriverWait(driver, 20).until(
                 EC.element_to_be_clickable(
@@ -453,7 +461,7 @@ class AsvzEnroller:
             try:
                 driver.find_element(
                     By.XPATH,
-                    "//alert[@class='ng-star-inserted'][contains(., 'ausgebucht')]",
+                    "//div[@class='alert alert-warning'][contains(., 'ausgebucht')]",
                 )
             except NoSuchElementException:
                 # has free places
