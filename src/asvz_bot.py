@@ -372,7 +372,7 @@ class AsvzEnroller:
     @staticmethod
     def __get_lesson_time(driver):
         lesson_interval_raw = driver.find_element(
-            By.XPATH, "//dl[contains(., 'Datum/Zeit')]/dd"
+            By.XPATH, "//dl//dt[contains(., 'Datum/Zeit')]//following-sibling::dd"
         )
         # lesson_interval_raw is like 'Mo, 10.05.2021 06:55 - 08:05'
         lesson_start_raw = (
