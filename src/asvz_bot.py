@@ -144,7 +144,7 @@ class AsvzEnroller:
     @classmethod
     def from_lesson_attributes(
         cls,
-        chromedriver,
+        chromedriver_path,
         weekday,
         start_time,
         trainer,
@@ -172,7 +172,7 @@ class AsvzEnroller:
         lesson_url = None
         driver = None
         try:
-            driver = AsvzEnroller.get_driver(chromedriver)
+            driver = AsvzEnroller.get_driver(chromedriver_path)
             driver.get(sport_url)
             driver.implicitly_wait(3)
 
@@ -201,16 +201,16 @@ class AsvzEnroller:
             if driver is not None:
                 driver.quit()
 
-        return cls(chromedriver, lesson_url, creds)
+        return cls(chromedriver_path, lesson_url, creds)
 
     @staticmethod
-    def get_driver(chromedriver):
+    def get_driver(chromedriver_path):
         options = Options()
         options.add_argument("--private")
         options.add_argument("--headless")
         options.add_experimental_option("prefs", {"intl.accept_languages": "de"})
         return webdriver.Chrome(
-            service=Service(chromedriver),
+            service=Service(chromedriver_path),
             options=options,
         )
 
@@ -481,7 +481,7 @@ def validate_start_time(start_time):
         raise argparse.ArgumentTypeError(msg)
 
 
-def get_chromedriver():
+def get_chromedriver_path():
     webdriver_manager = None
     try:
         webdriver_manager = ChromeDriverManager(chrome_type=ChromeType.CHROMIUM)
@@ -578,15 +578,15 @@ def main():
         logging.error(e)
         exit(1)
 
-    chromedriver = get_chromedriver()
+    chromedriver_path = get_chromedriver_path()
 
     enroller = None
     if args.type == "lesson":
         lesson_url = "{}/tn/lessons/{}".format(LESSON_BASE_URL, args.lesson_id)
-        enroller = AsvzEnroller(chromedriver, lesson_url, creds)
+        enroller = AsvzEnroller(chromedriver_path, lesson_url, creds)
     elif args.type == "training":
         enroller = AsvzEnroller.from_lesson_attributes(
-            chromedriver,
+            chromedriver_path,
             args.weekday,
             args.start_time,
             args.trainer,
