@@ -339,25 +339,16 @@ class AsvzEnroller:
 
     @staticmethod
     def __get_enrollment_time(driver):
-        # requires the user to be logged in, as the intro text is only available then
-        try:
-            introduction_text = driver.find_element(
-                By.XPATH, "//span[contains(., 'Online-Einschreibungen')]"
-            ).get_attribute("innerHTML")
-        except NoSuchElementException as e:
-            logging.info(
-                "No enrollment time found. Assuming enrollment is already open."
+        enrollment_interval_raw = driver.find_element(
+                By.XPATH, "//dl[contains(., 'Einschreibezeitraum')]/dd"
             )
-            # setting enrollment to some date in the past
-            return datetime.today() - timedelta(days=1)
-
-        # assumes enrollment start is the first date
-        enrollment_start_raw = re.findall(
-            "\d{2}\.\d{2}\.\d{4}\s\d{2}:\d{2}", introduction_text
-        )[0]
-
-        # enrollment_start_raw is like '17.01.2023 20:00'
-        enrollment_start_raw = enrollment_start_raw.strip()
+        # enrollment_interval_raw is like 'So, 09.05.2021 06:35 - Mo, 10.05.2021 07:05'
+        enrollment_start_raw = (
+            enrollment_interval_raw.get_attribute("innerHTML")
+            .split("-")[0]
+            .split(",")[1]
+            .strip()
+        )
         try:
             enrollment_start = datetime.strptime(enrollment_start_raw, "%d.%m.%Y %H:%M")
         except ValueError as e:

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Enrollment time interval includes the time again (essentially revert the changes done in `1.4.2` with respect to the enrollment time detection).
+
 ## [1.4.2] - 21.01.23
 
 ### Fixed
