@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Enrollment time interval includes the time again (essentially revert the changes done in `1.4.2` with respect to the enrollment time detection).
+- Upgrade `selenium` from `4.1.0` to `4.8.2` and `webdriver-manager` from `3.5.2` to `3.8.5`.
 
 ## [1.4.2] - 21.01.23
 
