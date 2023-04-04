@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "asvz-bot"
+version = "0.1.0"
+description = ""
+authors = ["sant0s12"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+selenium = "^4.8.3"
+webdriver-manager = "^3.8.5"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
