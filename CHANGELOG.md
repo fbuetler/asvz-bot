@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.4] - 17.04.23
+
+### Changed
+
+- Changed trainer argument to being optional as there are lessons like fitness, that do not have a trainer. In these cases, the first lesson in the list is taken (By [sant0s12](https://github.com/sant0s12)).
+
 ## [1.4.3] - 07.03.23
 
 ### Changed
