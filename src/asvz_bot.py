@@ -180,12 +180,17 @@ class AsvzEnroller:
                 By.XPATH, "//div[@class='teaser-list-calendar__day']"
             )
 
-            lesson = day_ele.find_element(
-                By.XPATH,
-                ".//li[@class='btn-hover-parent'][contains(., '{}')]".format(
-                    trainer,
-                ),
-            )
+            if trainer:
+                lesson = day_ele.find_element(
+                    By.XPATH,
+                    ".//li[@class='btn-hover-parent'][contains(., '{}')]".format(
+                        trainer,
+                    ),
+                )
+            else:
+                lesson = day_ele.find_element(
+                    By.XPATH, ".//li[@class='btn-hover-parent']"
+                )
             logging.debug("Found lesson")
 
             lesson_url = lesson.find_element(
@@ -340,8 +345,8 @@ class AsvzEnroller:
     @staticmethod
     def __get_enrollment_time(driver):
         enrollment_interval_raw = driver.find_element(
-                By.XPATH, "//dl[contains(., 'Einschreibezeitraum')]/dd"
-            )
+            By.XPATH, "//dl[contains(., 'Einschreibezeitraum')]/dd"
+        )
         # enrollment_interval_raw is like 'So, 09.05.2021 06:35 - Mo, 10.05.2021 07:05'
         enrollment_start_raw = (
             enrollment_interval_raw.get_attribute("innerHTML")
@@ -545,7 +550,7 @@ def main():
         help="Time when the lesson starts e.g. '19:15'",
     )
     parser_training.add_argument(
-        "-t", "--trainer", required=True, type=str, help="Trainer giving this lesson"
+        "-t", "--trainer", required=False, type=str, help="Trainer giving this lesson"
     )
     parser_training.add_argument(
         "-f",
