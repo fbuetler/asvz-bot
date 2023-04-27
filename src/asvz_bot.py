@@ -202,7 +202,14 @@ class AsvzEnroller:
             driver.get(lesson_url)
             driver.implicitly_wait(3)
             lesson_start = AsvzEnroller.__get_enrollment_and_start_time(driver)[1]
-            if lesson_start.weekday() != weekday_int:
+            expected_lesson_start = datetime(
+                weekday_date.year,
+                weekday_date.month,
+                weekday_date.day,
+                start_time.hour,
+                start_time.minute,
+            )
+            if lesson_start != expected_lesson_start:
                 logging.error(
                     "No lesson on the specified date and time! Most likely, you are trying to enroll on a holiday."
                 )
