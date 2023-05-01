@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.5] - 01.05.23
+
+### Changed
+
+- If lessons on a holiday are searched, the next day is displayed by the ASVZ website. Changed to now check if the found lesson is actually on the day specified by the user arguments (By [BRB2000](https://github.com/BRB2000)).
+
 ## [1.4.4] - 17.04.23
 
 ### Changed
@@ -101,7 +107,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Initial version
 
-[unreleased]: https://github.com/fbuetler/asvz-bot/compare/v1.4.4...master
+[unreleased]: https://github.com/fbuetler/asvz-bot/compare/v1.4.5...master
+[1.4.5]: https://github.com/fbuetler/asvz-bot/compare/v1.4.4...v1.4.5
 [1.4.4]: https://github.com/fbuetler/asvz-bot/compare/v1.4.3...v1.4.4
 [1.4.3]: https://github.com/fbuetler/asvz-bot/compare/v1.4.2...v1.4.3
 [1.4.2]: https://github.com/fbuetler/asvz-bot/compare/v1.4.1...v1.4.2
