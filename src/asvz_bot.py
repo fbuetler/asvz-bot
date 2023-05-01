@@ -197,6 +197,24 @@ class AsvzEnroller:
                 By.XPATH, ".//a[starts-with(@href, '{}')]".format(LESSON_BASE_URL)
             ).get_attribute("href")
             logging.debug(f"Found lesson url: {lesson_url}")
+
+            #When there is no lesson on the requested day, the ASVZ webpage returns the first lesson on the next day with lessons.
+            driver.get(lesson_url)
+            driver.implicitly_wait(3)
+            lesson_start = AsvzEnroller.__get_enrollment_and_start_time(driver)[1]
+            expected_lesson_start = datetime(
+                weekday_date.year,
+                weekday_date.month,
+                weekday_date.day,
+                start_time.hour,
+                start_time.minute,
+            )
+            if lesson_start != expected_lesson_start:
+                logging.error(
+                    "No lesson on the specified date and time! Most likely, you are trying to enroll on a holiday."
+                )
+                exit(2)
+
         except NoSuchElementException as e:
             logging.error(
                 "Lesson not found! Make sure the lesson is visible on the above URL and the name of the trainer matches."
