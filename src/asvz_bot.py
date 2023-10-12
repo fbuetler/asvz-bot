@@ -18,7 +18,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
-from webdriver_manager.core.utils import ChromeType
+from webdriver_manager.core.os_manager import ChromeType
 
 TIMEFORMAT = "%H:%M"
 
@@ -198,7 +198,7 @@ class AsvzEnroller:
             ).get_attribute("href")
             logging.debug(f"Found lesson url: {lesson_url}")
 
-            #When there is no lesson on the requested day, the ASVZ webpage returns the first lesson on the next day with lessons.
+            # When there is no lesson on the requested day, the ASVZ webpage returns the first lesson on the next day with lessons.
             driver.get(lesson_url)
             driver.implicitly_wait(3)
             lesson_start = AsvzEnroller.__get_enrollment_and_start_time(driver)[1]

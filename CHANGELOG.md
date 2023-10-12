@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.6] - 12.10.23
+
+### Changed
+
+- Upgraded `selenium` from `4.8.2` to `4.14.0` and `webdriver-manager` from `3.8.5` to `4.0.1`.
+- Corrected README setup command from [peschee](https://github.com/peschee)
+
+
 ## [1.4.5] - 01.05.23
 
 ### Changed
