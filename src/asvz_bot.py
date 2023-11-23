@@ -53,15 +53,18 @@ WEEKDAYS = {
 LEVELS = {"Alle": 2104, "Mittlere": 880, "Fortgeschrittene": 726}
 
 FACILITIES = {
-    "Sport Center Polyterrasse": 45594,
-    "Sport Center Irchel": 45577,
-    "Sport Center Hönggerberg": 45598,
-    "Sport Center Fluntern": 45575,
-    "Sport Center Winterthur": 45610,
-    "Rämistrasse 80": 45574,
-    "PH Zürich": 45583,
-    "Wädenswil Kraft-/Cardio-Center": 45613,
+    "CAB Move": 45614,
     "Online": 294542,
+    "PH Zürich": 45583,
+    "Rämibühl": 45573,
+    "Rämistrasse 80": 45574,
+    "Sport Center Fluntern": 45575,
+    "Sport Center Hönggerberg": 45598,
+    "Sport Center Irchel": 45577,
+    "Sport Center Polyterrasse": 45594,
+    "Sport Center Winterthur": 45610,
+    "Toni-Areal": 45568,
+    "Wädenswil Kraft-/Cardio-Center": 45613,
 }
 
 logging.basicConfig(

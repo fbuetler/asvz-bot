@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added `Rämibühl`, `Toni-Areal` and `CAB Move` to the available facilities.
+
 ## [1.4.6] - 12.10.23
 
 ### Changed
