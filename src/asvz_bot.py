@@ -31,13 +31,21 @@ CREDENTIALS_ORG = "organisation"
 CREDENTIALS_UNAME = "username"
 CREDENTIALS_PW = "password"
 
+ETH_ORGANISATION_NAME = "ETH Zürich"
+UZH_ORGANISATION_NAME = "Universität Zürich"
+ZHAW_ORGANISATION_NAME = "ZHAW - Zürcher Hochschule für Angewandte Wissenschaften"
+PHZH_ORGANISATION_NAME = "PH Zürich - Pädagogische Hochschule Zürich"
+ASVZ_ORGANISATION_NAME = "ASVZ"
+SWITCH_EDUID_ORGANISATION_NAME = "SWITCH edu-ID"
+
 # organisation name as displayed by SwitchAAI
 ORGANISATIONS = {
-    "ETH": "ETH Zürich",
-    "UZH": "Universität Zürich",
-    "ZHAW": "ZHAW - Zürcher Hochschule für Angewandte Wissenschaften",
-    "PHZH": "PH Zürich - Pädagogische Hochschule Zürich",
-    "ASVZ": "ASVZ",
+    "ETH": ETH_ORGANISATION_NAME,
+    "UZH": UZH_ORGANISATION_NAME,
+    "ZHAW": ZHAW_ORGANISATION_NAME,
+    "PHZH": PHZH_ORGANISATION_NAME,
+    "ASVZ": ASVZ_ORGANISATION_NAME,
+    "EDUID": SWITCH_EDUID_ORGANISATION_NAME,
 }
 
 WEEKDAYS = {
@@ -419,22 +427,8 @@ class AsvzEnroller:
         ).click()
 
         logging.info("Login to '{}'".format(self.creds[CREDENTIALS_ORG]))
-        if self.creds[CREDENTIALS_ORG] == "ASVZ":
-            driver.find_element(By.XPATH, "//input[@id='AsvzId']").send_keys(
-                self.creds[CREDENTIALS_UNAME]
-            )
-            driver.find_element(By.XPATH, "//input[@id='Password']").send_keys(
-                self.creds[CREDENTIALS_PW]
-            )
-
-            WebDriverWait(driver, 20).until(
-                EC.element_to_be_clickable(
-                    (
-                        By.XPATH,
-                        "//button[@type='submit' and text()='Login']",
-                    )
-                )
-            ).click()
+        if self.creds[CREDENTIALS_ORG] == ASVZ_ORGANISATION_NAME:
+            self.__organisation_login_asvz(driver)
         else:
             WebDriverWait(driver, 20).until(
                 EC.element_to_be_clickable(
@@ -452,14 +446,14 @@ class AsvzEnroller:
             organization.send_keys(self.creds[CREDENTIALS_ORG])
             organization.send_keys(Keys.ENTER)
 
-            # apparently all organisations have the same xpath
-            driver.find_element(By.XPATH, "//input[@id='username']").send_keys(
-                self.creds[CREDENTIALS_UNAME]
-            )
-            driver.find_element(By.XPATH, "//input[@id='password']").send_keys(
-                self.creds[CREDENTIALS_PW]
-            )
-            driver.find_element(By.XPATH, "//button[@type='submit']").click()
+            # UZH switched to Switch edu-ID login @see https://github.com/fbuetler/asvz-bot/issues/31
+            if (
+                self.creds[CREDENTIALS_ORG] == SWITCH_EDUID_ORGANISATION_NAME
+                or self.creds[CREDENTIALS_ORG] == UZH_ORGANISATION_NAME
+            ):
+                self.__organisation_login_switch_eduid(driver)
+            else:
+                self.__organisation_login_default(driver)
 
         logging.info("Submitted login credentials")
         time.sleep(3)  # wait until redirect is completed
@@ -472,6 +466,65 @@ class AsvzEnroller:
             )
         else:
             logging.info("Valid login credentials")
+
+    def __organisation_login_asvz(self, driver):
+        driver.find_element(By.XPATH, "//input[@id='AsvzId']").send_keys(
+            self.creds[CREDENTIALS_UNAME]
+        )
+        driver.find_element(By.XPATH, "//input[@id='Password']").send_keys(
+            self.creds[CREDENTIALS_PW]
+        )
+
+        WebDriverWait(driver, 20).until(
+            EC.element_to_be_clickable(
+                (
+                    By.XPATH,
+                    "//button[@type='submit' and text()='Login']",
+                )
+            )
+        ).click()
+
+    def __organisation_login_switch_eduid(self, driver):
+        driver.find_element(By.XPATH, "//input[@id='username']").send_keys(
+            self.creds[CREDENTIALS_UNAME]
+        )
+
+        WebDriverWait(driver, 20).until(
+            EC.element_to_be_clickable(
+                (
+                    By.XPATH,
+                    "//button[@type='submit' and @id='login-button']",
+                )
+            )
+        ).click()
+
+        try:
+            driver.find_element(By.XPATH, "//input[@id='password']").send_keys(
+                self.creds[CREDENTIALS_PW]
+            )
+        except NoSuchElementException:
+            logging.error(
+                "Failed to insert password. Please ensure that your username is an email address."
+            )
+            exit(1)
+
+        WebDriverWait(driver, 20).until(
+            EC.element_to_be_clickable(
+                (
+                    By.XPATH,
+                    "//button[@type='submit' and @id='login-button']",
+                )
+            )
+        ).click()
+
+    def __organisation_login_default(self, driver):
+        driver.find_element(By.XPATH, "//input[@id='username']").send_keys(
+            self.creds[CREDENTIALS_UNAME]
+        )
+        driver.find_element(By.XPATH, "//input[@id='password']").send_keys(
+            self.creds[CREDENTIALS_PW]
+        )
+        driver.find_element(By.XPATH, "//button[@type='submit']").click()
 
     def __wait_for_free_places(self, driver):
         while True:

@@ -9,7 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added `Rämibühl`, `Toni-Areal` and `CAB Move` to the available facilities.
+- Added `Rämibühl`, `Toni-Areal` and `CAB Move` to the available facilities (#33).
+- Added SWITCH edu-ID login
+
+### Fixed
+
+- UZH switched from own login to SWITCH edu-ID login (#31)
 
 ## [1.4.6] - 12.10.23
 
@@ -115,11 +120,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rewrote the whole logic
 - Corrected README example commands from [lmeinen](https://github.com/lmeinen)
 
-## [0.1] - 07.05.21
+## [0.1.0] - 07.05.21
 
 Initial version
 
-[unreleased]: https://github.com/fbuetler/asvz-bot/compare/v1.4.5...master
+[unreleased]: https://github.com/fbuetler/asvz-bot/compare/v1.4.6...master
+[1.4.6]: https://github.com/fbuetler/asvz-bot/compare/v1.4.5...v1.4.6
 [1.4.5]: https://github.com/fbuetler/asvz-bot/compare/v1.4.4...v1.4.5
 [1.4.4]: https://github.com/fbuetler/asvz-bot/compare/v1.4.3...v1.4.4
 [1.4.3]: https://github.com/fbuetler/asvz-bot/compare/v1.4.2...v1.4.3
@@ -132,4 +138,4 @@ Initial version
 [1.1.1]: https://github.com/fbuetler/asvz-bot/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/fbuetler/asvz-bot/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/fbuetler/asvz-bot/compare/v0.1...v1.0.0
-[0.1]: https://github.com/fbuetler/asvz-bot/releases/tag/v0.1
+[0.1.0]: https://github.com/fbuetler/asvz-bot/releases/tag/v0.1
