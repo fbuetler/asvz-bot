@@ -10,7 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added `Rämibühl`, `Toni-Areal` and `CAB Move` to the available facilities (#33).
-- Added SWITCH edu-ID login
+- Added SWITCH edu-ID login.
+- Added a check to ensure the enrollment was actually successful and show the enrollment number.
 
 ### Fixed
 

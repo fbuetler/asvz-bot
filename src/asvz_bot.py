@@ -5,6 +5,7 @@ import argparse
 import getpass
 import json
 import logging
+import re
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -83,6 +84,8 @@ logging.basicConfig(
 
 ISSUES_URL = "https://github.com/fbuetler/asvz-bot/issues"
 NO_SUCH_ELEMENT_ERR_MSG = f"Element on website not found! This may happen when the website was updated recently. Please report this incident to: {ISSUES_URL}"
+
+LESSON_ENROLLMENT_NUMBER_REGEX = re.compile(r".*Du\shast\sdie\sPlatz\-Nr\.\s(\d+).*")
 
 
 class AsvzBotException(Exception):
@@ -342,8 +345,40 @@ class AsvzEnroller:
                     )
                     continue
 
-                logging.info("Successfully enrolled. Train hard and have fun!")
+                logging.info("Submitted enrollment request.")
                 enrolled = True
+
+                try:
+                    enrollment_el = driver.find_element(
+                        By.TAG_NAME, "app-lessons-enrollment-button"
+                    )
+
+                    alert_el = enrollment_el.find_element(
+                        By.XPATH, "//div[contains(@class, 'alert')]"
+                    )
+                    alert_text = alert_el.get_attribute("innerHTML")
+
+                    if "Du hast dich erfolgreich eingeschrieben" in alert_text:
+                        logging.info("Successfully enrolled. Train hard and have fun!")
+                    else:
+                        logging.warning(
+                            "Enrollment might have not been successful. Please check your E-Mail."
+                        )
+
+                    participation_el = enrollment_el.find_element(By.TAG_NAME, "span")
+                    participation_text = participation_el.get_attribute("innerHTML")
+
+                    m = LESSON_ENROLLMENT_NUMBER_REGEX.match(participation_text)
+                    if m:
+                        enrollment_number = m.group(1)
+                        logging.info(f"Your enrollment number is {enrollment_number}")
+                    else:
+                        logging.warning(
+                            "Enrollment might have not been successful. Please check your E-Mail."
+                        )
+                except NoSuchElementException as e:
+                    logging.error("Failed to get enrollment result!")
+                    raise e
 
         except NoSuchElementException as e:
             logging.error(NO_SUCH_ELEMENT_ERR_MSG)
