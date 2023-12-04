@@ -1,0 +1,6 @@
+services:
+  asvz-bot:
+    container_name: asvz-bot
+    image: asvz-bot
+    build:
+      context: .

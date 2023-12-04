@@ -74,6 +74,25 @@ python3 asvz_bot.py training \
   45743
 ```
 
+## Docker
+In order to run the script using docker, follow these two steps:
+
+1. Install docker and docker compose (usually included) as explained on the official docker [website](https://docs.docker.com/engine/install/).
+
+2. Build the image using the following command from the repository's base directory:
+    ```bash
+    docker build
+    ```
+    This should show you the asvz-bot usage documentation
+
+3. Run your command using the following command:
+    ```bash
+    docker run asvz-bot {command}
+    ```
+    where `command` is the same command you would usually pass to your local installation, including `python3 asvz-bot.py`.
+
+// TODO: Support `.env` file based configuration
+
 ## Development
 
 ### Script
