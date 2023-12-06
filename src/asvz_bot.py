@@ -185,17 +185,7 @@ class CredentialsManager:
 
 class AsvzEnroller:
     @classmethod
-    def from_lesson_attributes(
-            cls,
-            chromedriver_path,
-            weekday,
-            start_time,
-            trainer,
-            facility,
-            level,
-            sport_id,
-            creds,
-    ):
+    def from_lesson_attributes(cls, chromedriver_path, weekday, start_time, trainer, facility, level, sport_id, creds):
         today = datetime.today()
         weekday_int = time.strptime(WEEKDAYS[weekday], "%A").tm_wday
         weekday_date = today + timedelta((weekday_int - today.weekday()) % 7)
@@ -294,9 +284,7 @@ class AsvzEnroller:
 
         login_before_enrollment_seconds = 1 * 59
         if (enrollment_start - current_time).seconds > login_before_enrollment_seconds:
-            sleep_time = (
-                                 enrollment_start - current_time
-                         ).seconds - login_before_enrollment_seconds
+            sleep_time = (enrollment_start - current_time).seconds - login_before_enrollment_seconds
             logging.info(
                 "Sleep for {} seconds until {}".format(
                     sleep_time,
