@@ -5,6 +5,10 @@ services:
     build:
       context: .
     environment:
+      # Credential values
+      - ASVZ_ORGANIZATION={ETH,UZH,ZHAW,PHZH,ASVZ}
+      - ASVZ_USERNAME={username}
+      - ASVZ_PASSWORD={password}
       # Event type, e.g. training, lesson
       - ASVZ_EVENT_TYPE={training/lesson/event}
       # Lesson values

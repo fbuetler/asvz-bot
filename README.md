@@ -5,20 +5,20 @@ This repo contains a script to automatically enroll to ASVZ lessons
 ## Features
 
 - Enroll to lesson
-  - based on lesson ID (for lessons visited once)
-  - based on sport ID, day, time, trainer, level, facility (for lessons visited periodically)
+    - based on lesson ID (for lessons visited once)
+    - based on sport ID, day, time, trainer, level, facility (for lessons visited periodically)
 - Enroll to lesson that is already full
 - Login as a member of
-  - ETH
-  - UZH
-  - ZHAW
-  - PHZH
-  - ASVZ
+    - ETH
+    - UZH
+    - ZHAW
+    - PHZH
+    - ASVZ
 - Save your credentials locally and reuse them on the next run
-- Note: 
-    UZH, ZHAW and PHZH use SWITCH edu-ID as login (*email* + password).
-    ETH uses own login (*nethz* + password)
-    ASVZ uses own login (*ASVZ-ID* + password)
+- Note:
+  UZH, ZHAW and PHZH use SWITCH edu-ID as login (*email* + password).
+  ETH uses own login (*nethz* + password)
+  ASVZ uses own login (*ASVZ-ID* + password)
 
 ## Run
 
@@ -75,23 +75,26 @@ python3 asvz_bot.py training \
 ```
 
 ## Docker
+
 In order to run the script using docker, follow these two steps:
 
 1. Install docker and docker compose (usually included) as explained on the official docker [website](https://docs.docker.com/engine/install/).
 
-2. Build the image using the following command from the repository's base directory:
-    ```bash
-    docker build
-    ```
-    This should show you the asvz-bot usage documentation
+2. Configure event parameters in `docker-compose.yaml`. Provide the required values as described above or on the cli help.
 
-3. Run your command using the following command:
-    ```bash
-    docker run asvz-bot {command}
-    ```
-    where `command` is the same command you would usually pass to your local installation, including `python3 asvz-bot.py`.
+3. Build the image using the following command from the repository's base directory:
+   ```bash
+   docker compose up --build
+   ```
 
-// TODO: Support `.env` file based configuration
+It is possible to configure multiple `docker-compose` files for different recurring events and start the bot with the appropriate one by specifying the `-f`
+flag as follows:
+
+1. Copy the `docker-compose.yaml` file and name it after your desired event, e.g. `docker-compose-myEvent.yaml`
+2. Run the bot using the following command, where you replace the file name with your actual file name:
+    ```bash
+    docker compose -f docker-compose-myEvent.yaml up --build
+    ```
 
 ## Development
 

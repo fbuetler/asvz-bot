@@ -9,7 +9,6 @@ import os
 import re
 import time
 from datetime import datetime, timedelta
-from enum import Enum
 from pathlib import Path
 from typing import Optional
 
@@ -275,6 +274,8 @@ class AsvzEnroller:
         options = Options()
         options.add_argument("--private")
         options.add_argument("--headless")
+        options.add_argument("--no-sandbox")  # Required for running as root user in Docker container
+        options.add_argument("--disable-dev-shm-usage")  # Required for running as root user in Docker container
         options.add_experimental_option("prefs", {"intl.accept_languages": "de"})
         return webdriver.Chrome(
             service=Service(chromedriver_path),
