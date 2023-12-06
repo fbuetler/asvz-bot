@@ -80,7 +80,7 @@ In order to run the script using docker, follow these two steps:
 
 1. Install docker and docker compose (usually included) as explained on the official docker [website](https://docs.docker.com/engine/install/).
 
-2. Configure event parameters in `docker-compose.yaml`. Provide the required values as described above or on the cli help.
+2. Configure event parameters in `docker-compose.yaml`. Provide the required values as described above or on the cli help. Make sure to comment out or remove any lines for values you are not using. 
 
 3. Build the image using the following command from the repository's base directory:
    ```bash
