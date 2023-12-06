@@ -15,10 +15,9 @@ RUN python3 -m pip install -r requirements.txt
 
 COPY src .
 
-# User cmd: \"$@\"
-CMD ["bash", "-c", "Xvfb -ac :99 -screen 0 1280x1024x16 & \"$@\""]
-
+CMD ["bash", "-c", "Xvfb -ac :99 -screen 0 1280x1024x16 & python3 asvz_bot.py"]
 
 # DEBUG Commands
+# User command: \"$@\"
 # CMD ["python3", "asvz_bot.py", "-h"]
 # CMD ["tail", "-f", "/dev/null"]

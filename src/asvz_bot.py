@@ -5,10 +5,13 @@ import argparse
 import getpass
 import json
 import logging
+import os
 import re
 import time
 from datetime import datetime, timedelta
+from enum import Enum
 from pathlib import Path
+from typing import Optional
 
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
@@ -75,6 +78,33 @@ FACILITIES = {
     "Toni-Areal": 45568,
     "Wädenswil Kraft-/Cardio-Center": 45613,
 }
+
+
+class EnvVariables:
+    """
+    Reads asvz-bot specific environment variables.
+    Env variable names are prefixed with "ASVZ_", in order to prevent accidental collisions.
+    """
+    # Event type, e.g. training, lesson
+    event_type: str = os.environ.get("ASVZ_EVENT_TYPE")
+
+    # Credential values
+    cred_organization: Optional[str] = os.environ.get("ASVZ_ORGANIZATION")
+    cred_username: Optional[str] = os.environ.get("ASVZ_USERNAME")
+    cred_password: Optional[str] = os.environ.get("ASVZ_PASSWORD")
+    save_credentials: Optional[str] = os.environ.get("ASVZ_SAVE_CREDENTIALS")
+
+    # Lesson values
+    lesson_id: Optional[str] = os.environ.get("ASVZ_LESSON_ID")
+
+    # Training values
+    week_day: Optional[str] = os.environ.get("ASVZ_WEEKDAY")
+    start_time: Optional[str] = os.environ.get("ASVZ_START_TIME")
+    facility: Optional[str] = os.environ.get("ASVZ_FACILITY")
+    level: Optional[str] = os.environ.get("ASVZ_LEVEL")
+    sport_id: Optional[str] = os.environ.get("ASVZ_SPORT_ID")
+    trainer: Optional[str] = os.environ.get("ASVZ_TRAINER")
+
 
 logging.basicConfig(
     format="%(asctime)s %(levelname)-8s %(message)s",
@@ -146,9 +176,9 @@ class CredentialsManager:
         with open(CREDENTIALS_FILENAME, "r") as f:
             data = json.load(f)
             if (
-                CREDENTIALS_ORG not in data
-                or CREDENTIALS_UNAME not in data
-                or CREDENTIALS_PW not in data
+                    CREDENTIALS_ORG not in data
+                    or CREDENTIALS_UNAME not in data
+                    or CREDENTIALS_PW not in data
             ):
                 return None
             return data
@@ -157,15 +187,15 @@ class CredentialsManager:
 class AsvzEnroller:
     @classmethod
     def from_lesson_attributes(
-        cls,
-        chromedriver_path,
-        weekday,
-        start_time,
-        trainer,
-        facility,
-        level,
-        sport_id,
-        creds,
+            cls,
+            chromedriver_path,
+            weekday,
+            start_time,
+            trainer,
+            facility,
+            level,
+            sport_id,
+            creds,
     ):
         today = datetime.today()
         weekday_int = time.strptime(WEEKDAYS[weekday], "%A").tm_wday
@@ -175,11 +205,11 @@ class AsvzEnroller:
         else:
             str_level = ""
         sport_url = (
-            f"{SPORTFAHRPLAN_BASE_URL}?"
-            + f"f[0]=sport:{sport_id}&"
-            + f"f[1]=facility:{FACILITIES[facility]}&"
-            + str_level
-            + f"date={weekday_date.year}-{weekday_date.month:02d}-{weekday_date.day:02d}%20{start_time.hour:02d}:{start_time.minute:02d}"
+                f"{SPORTFAHRPLAN_BASE_URL}?"
+                + f"f[0]=sport:{sport_id}&"
+                + f"f[1]=facility:{FACILITIES[facility]}&"
+                + str_level
+                + f"date={weekday_date.year}-{weekday_date.month:02d}-{weekday_date.day:02d}%20{start_time.hour:02d}:{start_time.minute:02d}"
         )
         logging.info("Searching lesson on '{}'".format(sport_url))
 
@@ -264,8 +294,8 @@ class AsvzEnroller:
         login_before_enrollment_seconds = 1 * 59
         if (enrollment_start - current_time).seconds > login_before_enrollment_seconds:
             sleep_time = (
-                enrollment_start - current_time
-            ).seconds - login_before_enrollment_seconds
+                                 enrollment_start - current_time
+                         ).seconds - login_before_enrollment_seconds
             logging.info(
                 "Sleep for {} seconds until {}".format(
                     sleep_time,
@@ -483,8 +513,8 @@ class AsvzEnroller:
 
             # UZH switched to Switch edu-ID login @see https://github.com/fbuetler/asvz-bot/issues/31
             if (
-                self.creds[CREDENTIALS_ORG] == SWITCH_EDUID_ORGANISATION_NAME
-                or self.creds[CREDENTIALS_ORG] == UZH_ORGANISATION_NAME
+                    self.creds[CREDENTIALS_ORG] == SWITCH_EDUID_ORGANISATION_NAME
+                    or self.creds[CREDENTIALS_ORG] == UZH_ORGANISATION_NAME
             ):
                 self.__organisation_login_switch_eduid(driver)
             else:
@@ -587,7 +617,7 @@ class AsvzEnroller:
             driver.refresh()
 
 
-def validate_start_time(start_time):
+def parse_and_validate_start_time(start_time) -> datetime:
     try:
         return datetime.strptime(start_time, TIMEFORMAT)
     except ValueError:
@@ -624,8 +654,18 @@ def main():
         choices=list(ORGANISATIONS.keys()),
         help="Name of your organisation.",
     )
-    parser.add_argument("-u", "--username", type=str, help="Organisation username")
-    parser.add_argument("-p", "--password", type=str, help="Organisation password")
+    parser.add_argument(
+        "-u",
+        "--username",
+        type=str,
+        help="Organisation username",
+    )
+    parser.add_argument(
+        "-p",
+        "--password",
+        type=str,
+        help="Organisation password",
+    )
     parser.add_argument(
         "--save-credentials",
         default=False,
@@ -633,7 +673,8 @@ def main():
         help="Store your login credentials locally and reused them on the next run",
     )
 
-    subparsers = parser.add_subparsers(dest="type")
+    subparsers = parser.add_subparsers(dest="type", title="Event type", help="Select the event type")
+
     parser_lesson = subparsers.add_parser("lesson", help="For lessons visited once")
     parser_lesson.add_argument(
         "lesson_id",
@@ -642,24 +683,32 @@ def main():
     )
 
     parser_training = subparsers.add_parser(
-        "training", help="For lessons visited periodically"
+        "training",
+        help="For lessons visited periodically",
     )
+
     parser_training.add_argument(
         "-w",
         "--weekday",
+        dest="weekday",
         required=True,
         choices=list(WEEKDAYS.keys()),
         help="Day of the week of the lesson",
     )
+
     parser_training.add_argument(
         "-s",
         "--start-time",
         required=True,
-        type=validate_start_time,
+        type=parse_and_validate_start_time,
         help="Time when the lesson starts e.g. '19:15'",
     )
     parser_training.add_argument(
-        "-t", "--trainer", required=False, type=str, help="Trainer giving this lesson"
+        "-t",
+        "--trainer",
+        required=False,
+        type=str,
+        help="Trainer giving this lesson",
     )
     parser_training.add_argument(
         "-f",
@@ -681,7 +730,23 @@ def main():
         help="Number at the end of link to a particular sport on ASVZ Sportfahrplan, e.g. 45743 in https://asvz.ch/426-sportfahrplan?f[0]=sport:45743 for volleyball",
     )
 
+    parser.set_defaults(
+        organisation=EnvVariables.cred_organization,
+        username=EnvVariables.cred_username,
+        password=EnvVariables.cred_password,
+        save_credentials=EnvVariables.save_credentials if EnvVariables.save_credentials is not None else True,
+        type=EnvVariables.event_type,
+        lesson_id=EnvVariables.lesson_id,
+        weekday=EnvVariables.week_day,
+        start_time=parse_and_validate_start_time(EnvVariables.start_time) if EnvVariables.start_time is not None else None,
+        trainer=EnvVariables.trainer,
+        facility=EnvVariables.facility,
+        level=EnvVariables.level,
+        sport_id=EnvVariables.sport_id,
+    )
+
     args = parser.parse_args()
+    print(f"DEBUG: {args=}")
 
     creds = None
     try:

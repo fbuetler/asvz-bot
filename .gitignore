@@ -26,3 +26,6 @@ venv
 
 # ASDF
 .tool-versions
+
+# Config files
+docker-compose-*.yaml

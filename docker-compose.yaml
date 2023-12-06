@@ -4,3 +4,15 @@ services:
     image: asvz-bot
     build:
       context: .
+    environment:
+      # Event type, e.g. training, lesson
+      - ASVZ_EVENT_TYPE={training/lesson/event}
+      # Lesson values
+      - ASVZ_LESSON_ID={lesson_id}
+      # Training values
+      - ASVZ_WEEKDAY={weekday}
+      - ASVZ_START_TIME={start_time}
+      - ASVZ_FACILITY={facility}
+      - ASVZ_LEVEL={level}
+      - ASVZ_SPORT_ID={sport_id}
+      - ASVZ_TRAINER={trainer}
