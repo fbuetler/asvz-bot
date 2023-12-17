@@ -679,7 +679,6 @@ def main():
     parser_training.add_argument(
         "-w",
         "--weekday",
-        dest="weekday",
         required=True,
         choices=list(WEEKDAYS.keys()),
         help="Day of the week of the lesson",
@@ -735,7 +734,7 @@ def main():
     )
 
     args = parser.parse_args()
-    print(f"DEBUG: {args=}")
+    logging.debug(f"Parsed {args=}")
 
     creds = None
     try:

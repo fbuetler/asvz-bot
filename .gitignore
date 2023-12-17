@@ -30,3 +30,5 @@ venv
 # Config files
 *.env
 *-env
+*-docker-compose.yaml
+docker-compose-*.yaml
