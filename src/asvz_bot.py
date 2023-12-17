@@ -720,18 +720,18 @@ def main():
     )
 
     parser.set_defaults(
-        organisation=EnvVariables.cred_organization,
-        username=EnvVariables.cred_username,
-        password=EnvVariables.cred_password,
+        organisation=EnvVariables.cred_organization if EnvVariables.cred_organization != "" else None,
+        username=EnvVariables.cred_username if EnvVariables.cred_username != "" else None,
+        password=EnvVariables.cred_password if EnvVariables.cred_password != "" else None,
         save_credentials=EnvVariables.save_credentials if EnvVariables.save_credentials is not None else True,
-        type=EnvVariables.event_type,
-        lesson_id=EnvVariables.lesson_id,
-        weekday=EnvVariables.week_day,
+        type=EnvVariables.event_type if EnvVariables.event_type != "" else None,
+        lesson_id=EnvVariables.lesson_id if EnvVariables.lesson_id != "" else None,
+        weekday=EnvVariables.week_day if EnvVariables.week_day != "" else None,
         start_time=parse_and_validate_start_time(EnvVariables.start_time) if EnvVariables.start_time is not None else None,
-        trainer=EnvVariables.trainer,
-        facility=EnvVariables.facility,
-        level=EnvVariables.level,
-        sport_id=EnvVariables.sport_id,
+        trainer=EnvVariables.trainer if EnvVariables.trainer != "" else None,
+        facility=EnvVariables.facility if EnvVariables.sport_id != "" else None,
+        level=EnvVariables.level if EnvVariables.level != "" else None,
+        sport_id=EnvVariables.sport_id if EnvVariables.sport_id != "" else None,
     )
 
     args = parser.parse_args()

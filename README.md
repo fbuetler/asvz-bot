@@ -80,20 +80,20 @@ In order to run the script using docker, follow these two steps:
 
 1. Install docker and docker compose (usually included) as explained on the official docker [website](https://docs.docker.com/engine/install/).
 
-2. Configure event parameters in `docker-compose.yaml`. Provide the required values as described above or on the cli help. Make sure to comment out or remove any lines for values you are not using. 
+2. Configure event parameters in the `env` file. Provide the required values as described above or on the cli help. Make sure to comment out or remove any lines for values you are not using. 
 
 3. Build the image using the following command from the repository's base directory:
    ```bash
-   docker compose up --build
+   docker compose --env-file env up --build
    ```
 
-It is possible to configure multiple `docker-compose` files for different recurring events and start the bot with the appropriate one by specifying the `-f`
+It is possible to configure multiple `env` files for different recurring events and start the bot with the appropriate one by specifying the `--env-file`
 flag as follows:
 
-1. Copy the `docker-compose.yaml` file and name it after your desired event, e.g. `docker-compose-myEvent.yaml`
+1. Copy the `env` file and name it after your desired event, using one of the following patterns: `myEvent.env` or `myEvent-env`
 2. Run the bot using the following command, where you replace the file name with your actual file name:
     ```bash
-    docker compose -f docker-compose-myEvent.yaml up --build
+    docker compose --env-file myEvent.env up --build
     ```
 
 ## Development

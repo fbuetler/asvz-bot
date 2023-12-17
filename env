@@ -1,0 +1,14 @@
+# Credential values
+# ASVZ_ORGANIZATION=      # { ETH / UZH / ZHAW / PHZH / ASVZ }
+# VZ_USERNAME=
+# ASVZ_PASSWORD=
+# ASVZ_EVENT_TYPE=        # { training / lesson / event }
+# Lesson values
+# ASVZ_LESSON_ID=
+# Training values
+# ASVZ_WEEKDAY=           # { MO / TU / WE / TH / FR / SA / SU }
+# ASVZ_START_TIME=
+# ASVZ_FACILITY=          # { CAB Move / Online / PH Zürich / Rämibühl / Rämistrasse 80 / Sport Center Fluntern / Sport Center Hönggerberg / Sport Center Irchel / Sport Center Polyterrasse / Sport Center Winterthur / Toni-Areal / Wädenswil Kraft-/Cardio-Center }
+# ASVZ_LEVEL=
+# ASVZ_SPORT_ID=
+# ASVZ_TRAINER=

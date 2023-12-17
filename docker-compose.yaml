@@ -1,3 +1,5 @@
+version: "3"
+
 services:
   asvz-bot:
     container_name: asvz-bot
@@ -5,18 +7,19 @@ services:
     build:
       context: .
     environment:
+      # Redirect env values from env files. Consult README.md for more information on how to configure the docker setup.
       # Credential values
-      - ASVZ_ORGANIZATION={ETH,UZH,ZHAW,PHZH,ASVZ}
-      - ASVZ_USERNAME={username}
-      - ASVZ_PASSWORD={password}
+      - ASVZ_ORGANIZATION=${ASVZ_ORGANIZATION:-}
+      - ASVZ_USERNAME=${ASVZ_USERNAME:-}
+      - ASVZ_PASSWORD=${ASVZ_PASSWORD:-}
       # Event type, e.g. training, lesson
-      - ASVZ_EVENT_TYPE={training/lesson/event}
+      - ASVZ_EVENT_TYPE=${ASVZ_EVENT_TYPE:-}
       # Lesson values
-      - ASVZ_LESSON_ID={lesson_id}
+      - ASVZ_LESSON_ID=${ASVZ_LESSON_ID:-}
       # Training values
-      - ASVZ_WEEKDAY={weekday}
-      - ASVZ_START_TIME={start_time}
-      - ASVZ_FACILITY={facility}
-      - ASVZ_LEVEL={level}
-      - ASVZ_SPORT_ID={sport_id}
-      - ASVZ_TRAINER={trainer}
+      - ASVZ_WEEKDAY=${ASVZ_WEEKDAY:-}
+      - ASVZ_START_TIME=${ASVZ_START_TIME:-}
+      - ASVZ_FACILITY=${ASVZ_FACILITY:-}
+      - ASVZ_LEVEL=${ASVZ_LEVEL:-}
+      - ASVZ_SPORT_ID=${ASVZ_SPORT_ID:-}
+      - ASVZ_TRAINER=${ASVZ_TRAINER:-}

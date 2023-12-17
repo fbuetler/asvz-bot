@@ -28,4 +28,5 @@ venv
 .tool-versions
 
 # Config files
-docker-compose-*.yaml
+*.env
+*-env
