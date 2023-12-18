@@ -84,6 +84,7 @@ class EnvVariables:
     Reads asvz-bot specific environment variables.
     Env variable names are prefixed with "ASVZ_", in order to prevent accidental collisions.
     """
+
     # Event type, e.g. training, lesson
     event_type: Optional[str] = os.environ.get("ASVZ_EVENT_TYPE")
 
@@ -175,9 +176,9 @@ class CredentialsManager:
         with open(CREDENTIALS_FILENAME, "r") as f:
             data = json.load(f)
             if (
-                    CREDENTIALS_ORG not in data
-                    or CREDENTIALS_UNAME not in data
-                    or CREDENTIALS_PW not in data
+                CREDENTIALS_ORG not in data
+                or CREDENTIALS_UNAME not in data
+                or CREDENTIALS_PW not in data
             ):
                 return None
             return data
@@ -185,7 +186,17 @@ class CredentialsManager:
 
 class AsvzEnroller:
     @classmethod
-    def from_lesson_attributes(cls, chromedriver_path, weekday, start_time, trainer, facility, level, sport_id, creds):
+    def from_lesson_attributes(
+        cls,
+        chromedriver_path,
+        weekday,
+        start_time,
+        trainer,
+        facility,
+        level,
+        sport_id,
+        creds,
+    ):
         today = datetime.today()
         weekday_int = time.strptime(WEEKDAYS[weekday], "%A").tm_wday
         weekday_date = today + timedelta((weekday_int - today.weekday()) % 7)
@@ -194,11 +205,11 @@ class AsvzEnroller:
         else:
             str_level = ""
         sport_url = (
-                f"{SPORTFAHRPLAN_BASE_URL}?"
-                + f"f[0]=sport:{sport_id}&"
-                + f"f[1]=facility:{FACILITIES[facility]}&"
-                + str_level
-                + f"date={weekday_date.year}-{weekday_date.month:02d}-{weekday_date.day:02d}%20{start_time.hour:02d}:{start_time.minute:02d}"
+            f"{SPORTFAHRPLAN_BASE_URL}?"
+            + f"f[0]=sport:{sport_id}&"
+            + f"f[1]=facility:{FACILITIES[facility]}&"
+            + str_level
+            + f"date={weekday_date.year}-{weekday_date.month:02d}-{weekday_date.day:02d}%20{start_time.hour:02d}:{start_time.minute:02d}"
         )
         logging.info("Searching lesson on '{}'".format(sport_url))
 
@@ -264,8 +275,12 @@ class AsvzEnroller:
         options = Options()
         options.add_argument("--private")
         options.add_argument("--headless")
-        options.add_argument("--no-sandbox")  # Required for running as root user in Docker container
-        options.add_argument("--disable-dev-shm-usage")  # Required for running as root user in Docker container
+        options.add_argument(
+            "--no-sandbox"
+        )  # Required for running as root user in Docker container
+        options.add_argument(
+            "--disable-dev-shm-usage"
+        )  # Required for running as root user in Docker container
         options.add_experimental_option("prefs", {"intl.accept_languages": "de"})
         return webdriver.Chrome(
             service=Service(chromedriver_path),
@@ -284,7 +299,9 @@ class AsvzEnroller:
 
         login_before_enrollment_seconds = 1 * 59
         if (enrollment_start - current_time).seconds > login_before_enrollment_seconds:
-            sleep_time = (enrollment_start - current_time).seconds - login_before_enrollment_seconds
+            sleep_time = (
+                enrollment_start - current_time
+            ).seconds - login_before_enrollment_seconds
             logging.info(
                 "Sleep for {} seconds until {}".format(
                     sleep_time,
@@ -502,8 +519,8 @@ class AsvzEnroller:
 
             # UZH switched to Switch edu-ID login @see https://github.com/fbuetler/asvz-bot/issues/31
             if (
-                    self.creds[CREDENTIALS_ORG] == SWITCH_EDUID_ORGANISATION_NAME
-                    or self.creds[CREDENTIALS_ORG] == UZH_ORGANISATION_NAME
+                self.creds[CREDENTIALS_ORG] == SWITCH_EDUID_ORGANISATION_NAME
+                or self.creds[CREDENTIALS_ORG] == UZH_ORGANISATION_NAME
             ):
                 self.__organisation_login_switch_eduid(driver)
             else:
@@ -662,7 +679,9 @@ def main():
         help="Store your login credentials locally and reused them on the next run",
     )
 
-    subparsers = parser.add_subparsers(dest="type", title="Event type", help="Select the event type")
+    subparsers = parser.add_subparsers(
+        dest="type", title="Event type", help="Select the event type"
+    )
 
     parser_lesson = subparsers.add_parser("lesson", help="For lessons visited once")
     parser_lesson.add_argument(
@@ -719,14 +738,24 @@ def main():
     )
 
     parser.set_defaults(
-        organisation=EnvVariables.cred_organization if EnvVariables.cred_organization != "" else None,
-        username=EnvVariables.cred_username if EnvVariables.cred_username != "" else None,
-        password=EnvVariables.cred_password if EnvVariables.cred_password != "" else None,
-        save_credentials=EnvVariables.save_credentials if EnvVariables.save_credentials is not None else True,
+        organisation=EnvVariables.cred_organization
+        if EnvVariables.cred_organization != ""
+        else None,
+        username=EnvVariables.cred_username
+        if EnvVariables.cred_username != ""
+        else None,
+        password=EnvVariables.cred_password
+        if EnvVariables.cred_password != ""
+        else None,
+        save_credentials=EnvVariables.save_credentials
+        if EnvVariables.save_credentials is not None
+        else True,
         type=EnvVariables.event_type if EnvVariables.event_type != "" else None,
         lesson_id=EnvVariables.lesson_id if EnvVariables.lesson_id != "" else None,
         weekday=EnvVariables.week_day if EnvVariables.week_day != "" else None,
-        start_time=parse_and_validate_start_time(EnvVariables.start_time) if EnvVariables.start_time is not None else None,
+        start_time=parse_and_validate_start_time(EnvVariables.start_time)
+        if EnvVariables.start_time is not None
+        else None,
         trainer=EnvVariables.trainer if EnvVariables.trainer != "" else None,
         facility=EnvVariables.facility if EnvVariables.sport_id != "" else None,
         level=EnvVariables.level if EnvVariables.level != "" else None,
