@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added Docker & Docker compose support
+Read README.md for documentation
+
 ### Added
 
 - Added `Rämibühl`, `Toni-Areal` and `CAB Move` to the available facilities (#33).
