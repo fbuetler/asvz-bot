@@ -85,7 +85,7 @@ class EnvVariables:
     Env variable names are prefixed with "ASVZ_", in order to prevent accidental collisions.
     """
     # Event type, e.g. training, lesson
-    event_type: str = os.environ.get("ASVZ_EVENT_TYPE")
+    event_type: Optional[str] = os.environ.get("ASVZ_EVENT_TYPE")
 
     # Credential values
     cred_organization: Optional[str] = os.environ.get("ASVZ_ORGANIZATION")
