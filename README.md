@@ -1,3 +1,9 @@
+## :warning: **asvz bot is no longer maintained**
+
+This repository has been archived on Dec 18th, 2023.
+
+The ASVZ IT department has kindly asked me to discontinue this project in compliance with their [Fair Play Rules](https://asvz.ch/59666-willkommen-im-asvz#details1-fold-5492-0).
+
 # The asvz bot
 
 This repo contains a script to automatically enroll to ASVZ lessons
