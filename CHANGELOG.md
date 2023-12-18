@@ -7,14 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added Docker & Docker compose support
-Read README.md for documentation
-
 ### Added
 
 - Added `Rämibühl`, `Toni-Areal` and `CAB Move` to the available facilities (#33).
 - Added SWITCH edu-ID login.
 - Added a check to ensure the enrollment was actually successful and show the enrollment number.
+- Added Docker & Docker compose support (By [masus04](https://github.com/masus04)).
 
 ### Fixed
 
