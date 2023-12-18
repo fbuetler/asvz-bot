@@ -1,37 +1,10 @@
 import os
-from selenium import webdriver
-import requests
-from requests import Response
 
+from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.core.download_manager import WDMDownloadManager
-from webdriver_manager.core.http import HttpClient
-from webdriver_manager.core.logger import log
-from requests.adapters import HTTPAdapter
 
-class CustomHttpClient(HttpClient):
-    def __init__(self, proxy) -> None:
-        super().__init__()
-        self.proxy = proxy
-
-    def get(self, url, params=None, **kwargs) -> Response:
-        """
-        Add you own logic here like session or proxy etc.
-        """
-        log("The call will be done with custom HTTP client")
-
-        if self.proxy:
-            # If a proxy is provided, use it
-            session = requests.Session()
-            session.mount('http://', HTTPAdapter(max_retries=3))
-            session.mount('https://', HTTPAdapter(max_retries=3))
-            session.proxies = {'http': self.proxy, 'https': self.proxy}
-            response = session.get(url, params=params, **kwargs)  # Use params as a keyword argument
-        else:
-            # If no proxy is provided, make a regular request
-            response = requests.get(url, params=params, **kwargs)
-
-        return response
+from asvz_bot import CustomHttpClient
 
 
 def test_custom_http_client():
@@ -40,6 +13,7 @@ def test_custom_http_client():
     response = custom_client.get("https://google.com")
     print(response)
     assert response is not None
+
 
 def test_can_get_chrome_driver_with_custom_http_client():
     http_client = CustomHttpClient(proxy="proxy.ethz.ch:3128")
@@ -68,5 +42,8 @@ def test_selenium_driver():
     # Close the browser
     driver.quit()
 
+
 if __name__ == "__main__":
     test_custom_http_client()
+    test_can_get_chrome_driver_with_custom_http_client()
+    test_selenium_driver()

@@ -12,13 +12,7 @@ from pathlib import Path
 
 import requests
 from requests import Response
-
-from webdriver_manager.chrome import ChromeDriverManager
-from webdriver_manager.core.download_manager import WDMDownloadManager
-from webdriver_manager.core.http import HttpClient
-from webdriver_manager.core.logger import log
 from requests.adapters import HTTPAdapter
-
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.chrome.options import Options
@@ -28,6 +22,9 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.core.download_manager import WDMDownloadManager
+from webdriver_manager.core.http import HttpClient
+from webdriver_manager.core.logger import log
 from webdriver_manager.core.os_manager import ChromeType
 
 TIMEFORMAT = "%H:%M"
@@ -102,6 +99,33 @@ LESSON_ENROLLMENT_NUMBER_REGEX = re.compile(r".*Du\shast\sdie\sPlatz\-Nr\.\s(\d+
 
 class AsvzBotException(Exception):
     pass
+
+
+class CustomHttpClient(HttpClient):
+    def __init__(self, proxy) -> None:
+        super().__init__()
+        self.proxy = proxy
+
+    def get(self, url, params=None, **kwargs) -> Response:
+        """
+        Add you own logic here like session or proxy etc.
+        """
+        log("The call will be done with custom HTTP client")
+
+        if self.proxy:
+            # If a proxy is provided, use it
+            session = requests.Session()
+            session.mount("http://", HTTPAdapter(max_retries=3))
+            session.mount("https://", HTTPAdapter(max_retries=3))
+            session.proxies = {"http": self.proxy, "https": self.proxy}
+            response = session.get(
+                url, params=params, **kwargs
+            )  # Use params as a keyword argument
+        else:
+            # If no proxy is provided, make a regular request
+            response = requests.get(url, params=params, **kwargs)
+
+        return response
 
 
 class CredentialsManager:
@@ -346,7 +370,7 @@ class AsvzEnroller:
                 self.__organisation_login(driver)
 
                 try:
-                    logging.info("Waiting for enrollment")                    
+                    logging.info("Waiting for enrollment")
                     WebDriverWait(driver, 5 * 60).until(
                         EC.element_to_be_clickable(
                             (
@@ -355,7 +379,7 @@ class AsvzEnroller:
                             )
                         )
                     ).click()
-                        
+
                     time.sleep(5)
                 except TimeoutException as e:
                     logging.info(
@@ -430,25 +454,33 @@ class AsvzEnroller:
             enrollment_interval_raw = driver.find_element(
                 By.XPATH, "//dl[contains(., 'Einschreibezeitraum')]/dd"
             )
-            # enrollment_interval_raw is like 'So, 09.05.2021 06:35 - Mo, 10.05.2021 07:05'
-            enrollment_start_raw = (
-                enrollment_interval_raw.get_attribute("innerHTML")
-                .split("-")[0]
-                .split(",")[1]
-                .strip()
-            )
-            try:
-                enrollment_start = datetime.strptime(enrollment_start_raw, "%d.%m.%Y %H:%M")
-            except ValueError as e:
-                logging.error(e)
-                raise AsvzBotException(
-                    "Failed to parse enrollment start time: '{}'".format(
-                        enrollment_start_raw
-                    )
-                )
         except NoSuchElementException as e:
-            logging.info("No enrollment time found. Assuming that enrollment is open.")
-            enrollment_start = datetime.today()
+            # If no section called "Einschreibezeitraum" is found, look for "dl" with "Anmeldezeitraum"
+            enrollment_interval_raw = driver.find_element(
+                By.XPATH, "//dl[contains(., 'Anmeldezeitraum')]/dd"
+            )
+
+        # enrollment_interval_raw is like 'Mo, 04.12.2023 10:00 - Di, 26.12.2023 23:59'
+        enrollment_start_raw = (
+            enrollment_interval_raw.get_attribute("innerHTML")
+            .split("-")[0]
+            .split(",")[1]
+            .strip()
+        )
+
+        try:
+            enrollment_start = datetime.strptime(enrollment_start_raw, "%d.%m.%Y %H:%M")
+        except ValueError as e:
+            logging.error(e)
+            raise AsvzBotException(
+                "Failed to parse enrollment start time: '{}'".format(
+                    enrollment_start_raw
+                )
+            )
+
+        logging.info(
+            "Enrollment starts at {}".format(enrollment_start.strftime("%H:%M:%S"))
+        )
         return enrollment_start
 
     @staticmethod
@@ -457,25 +489,20 @@ class AsvzEnroller:
             lesson_interval_raw = driver.find_element(
                 By.XPATH, "//dl[contains(., 'Datum/Zeit')]/dd"
             )
-            # lesson_interval_raw is like 'Mo, 10.05.2021 06:55 - 08:05'
-            lesson_start_raw = (
-                lesson_interval_raw.get_attribute("innerHTML")
-                .split("-")[0]
-                .split(",")[1]
-                .strip()
-            )
         except NoSuchElementException:
             # If no section called "Datum/Zeit" is found, look for "dt" with "Lektionen"
             lesson_interval_raw = driver.find_element(
-                By.XPATH, "//dt[contains(., 'Lektionen')]/following-sibling::dd[1]"
+                By.XPATH, "//dt[contains(., 'Lektionen')]/following-sibling::dd[0]"
             )
-            # Assuming the "dd" element's innerHTML is '10.05.2021 06:55 - 08:05', and there are multiple "dd" elements
-            lesson_start_raw = (
-                lesson_interval_raw.get_attribute("innerHTML")
-                .split("-")[0]
-                .split(",")[1]
-                .strip()
-            )
+
+        # lesson_interval_raw is like 'Mo, 10.05.2021 06:55 - 08:05'
+        lesson_start_raw = (
+            lesson_interval_raw.get_attribute("innerHTML")
+            .split("-")[0]
+            .split(",")[1]
+            .strip()
+        )
+
         try:
             lesson_start = datetime.strptime(lesson_start_raw, "%d.%m.%Y %H:%M")
         except ValueError as e:
@@ -483,7 +510,8 @@ class AsvzEnroller:
             raise AsvzBotException(
                 "Failed to parse lesson start time: '{}'".format(lesson_start_raw)
             )
-        logging.info("Lesson starts at {}".format(lesson_start))
+
+        logging.info("Lesson starts at {}".format(lesson_start.strftime("%H:%M:%S")))
         return lesson_start
 
     def __organisation_login(self, driver):
@@ -599,12 +627,10 @@ class AsvzEnroller:
 
     def __wait_for_free_places(self, driver):
         while True:
-            # Instead of checking alert banner look the amount of free places
-            lesson_interval_raw = driver.find_element(
+            num_free_spots_raw = driver.find_element(
                 By.XPATH, "//dl[contains(., 'Freie Plätze')]/dd/span"
             )
-            # lesson_interval_raw is like 'Mo, 10.05.2021 06:55 - 08:05'
-            num_free_spots = int(lesson_interval_raw.get_attribute("innerHTML"))
+            num_free_spots = int(num_free_spots_raw.get_attribute("innerHTML"))
 
             if num_free_spots > 0:
                 # has free places
@@ -631,31 +657,6 @@ def validate_start_time(start_time):
     except ValueError:
         msg = "Invalid start time specified. Supported format is {}".format(TIMEFORMAT)
         raise argparse.ArgumentTypeError(msg)
-
-
-class CustomHttpClient(HttpClient):
-    def __init__(self, proxy) -> None:
-        super().__init__()
-        self.proxy = proxy
-
-    def get(self, url, params=None, **kwargs) -> Response:
-        """
-        Add you own logic here like session or proxy etc.
-        """
-        log("The call will be done with custom HTTP client")
-
-        if self.proxy:
-            # If a proxy is provided, use it
-            session = requests.Session()
-            session.mount('http://', HTTPAdapter(max_retries=3))
-            session.proxies = {'http': self.proxy}
-            response = session.get(url, params=params, **kwargs)  # Use params as a keyword argument
-        else:
-            # If no proxy is provided, make a regular request
-            response = requests.get(url, params=params, **kwargs)
-
-        return response
-
 
 
 def get_chromedriver_path(proxy_url=None):
@@ -704,7 +705,9 @@ def main():
     )
     parser.add_argument("-u", "--username", type=str, help="Organisation username")
     parser.add_argument("-p", "--password", type=str, help="Organisation password")
-    parser.add_argument("-x", "--proxy", type=str, help="Proxy URL", required=False, default=None)
+    parser.add_argument(
+        "-x", "--proxy", type=str, help="Proxy URL", required=False, default=None
+    )
     parser.add_argument(
         "--save-credentials",
         default=False,
