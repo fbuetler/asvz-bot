@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.7] - 18.12.23
+
 ### Added
 
 - Added `Rämibühl`, `Toni-Areal` and `CAB Move` to the available facilities (#33).
@@ -129,7 +131,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Initial version
 
-[unreleased]: https://github.com/fbuetler/asvz-bot/compare/v1.4.6...master
+[unreleased]: https://github.com/fbuetler/asvz-bot/compare/v1.4.7...master
+[1.4.7]: https://github.com/fbuetler/asvz-bot/compare/v1.4.6...v1.4.7
 [1.4.6]: https://github.com/fbuetler/asvz-bot/compare/v1.4.5...v1.4.6
 [1.4.5]: https://github.com/fbuetler/asvz-bot/compare/v1.4.4...v1.4.5
 [1.4.4]: https://github.com/fbuetler/asvz-bot/compare/v1.4.3...v1.4.4
