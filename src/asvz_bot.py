@@ -12,6 +12,9 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
 
+import requests
+from requests import Response
+from requests.adapters import HTTPAdapter
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.chrome.options import Options
@@ -21,6 +24,9 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.core.download_manager import WDMDownloadManager
+from webdriver_manager.core.http import HttpClient
+from webdriver_manager.core.logger import log
 from webdriver_manager.core.os_manager import ChromeType
 
 TIMEFORMAT = "%H:%M"
@@ -76,6 +82,9 @@ FACILITIES = {
     "Sport Center Winterthur": 45610,
     "Toni-Areal": 45568,
     "Wädenswil Kraft-/Cardio-Center": 45613,
+    "Bad City": 45604,
+    "Bad Oerlikon": 45590,
+    "Bad Bungertwies": 45602,
 }
 
 
@@ -120,6 +129,33 @@ LESSON_ENROLLMENT_NUMBER_REGEX = re.compile(r".*Du\shast\sdie\sPlatz\-Nr\.\s(\d+
 
 class AsvzBotException(Exception):
     pass
+
+
+class CustomHttpClient(HttpClient):
+    def __init__(self, proxy) -> None:
+        super().__init__()
+        self.proxy = proxy
+
+    def get(self, url, params=None, **kwargs) -> Response:
+        """
+        Add you own logic here like session or proxy etc.
+        """
+        log("The call will be done with custom HTTP client")
+
+        if self.proxy:
+            # If a proxy is provided, use it
+            session = requests.Session()
+            session.mount("http://", HTTPAdapter(max_retries=3))
+            session.mount("https://", HTTPAdapter(max_retries=3))
+            session.proxies = {"http": self.proxy, "https": self.proxy}
+            response = session.get(
+                url, params=params, **kwargs
+            )  # Use params as a keyword argument
+        else:
+            # If no proxy is provided, make a regular request
+            response = requests.get(url, params=params, **kwargs)
+
+        return response
 
 
 class CredentialsManager:
@@ -195,6 +231,7 @@ class AsvzEnroller:
         facility,
         level,
         sport_id,
+        proxy_url,
         creds,
     ):
         today = datetime.today()
@@ -216,7 +253,7 @@ class AsvzEnroller:
         lesson_url = None
         driver = None
         try:
-            driver = AsvzEnroller.get_driver(chromedriver_path)
+            driver = AsvzEnroller.get_driver(chromedriver_path, proxy_url)
             driver.get(sport_url)
             driver.implicitly_wait(3)
 
@@ -271,7 +308,7 @@ class AsvzEnroller:
         return cls(chromedriver_path, lesson_url, creds)
 
     @staticmethod
-    def get_driver(chromedriver_path):
+    def get_driver(chromedriver_path, proxy_url=None):
         options = Options()
         options.add_argument("--private")
         options.add_argument("--headless")
@@ -282,6 +319,9 @@ class AsvzEnroller:
             "--disable-dev-shm-usage"
         )  # Required for running as root user in Docker container
         options.add_experimental_option("prefs", {"intl.accept_languages": "de"})
+        if proxy_url is not None:
+            options.add_argument(f"--proxy-server={proxy_url}")
+
         return webdriver.Chrome(
             service=Service(chromedriver_path),
             options=options,
@@ -310,10 +350,11 @@ class AsvzEnroller:
             )
             time.sleep(sleep_time)
 
-    def __init__(self, chromedriver, lesson_url, creds):
+    def __init__(self, chromedriver, lesson_url, creds, proxy_url=None):
         self.chromedriver = chromedriver
         self.lesson_url = lesson_url
         self.creds = creds
+        self.proxy_url = proxy_url
 
         logging.info(
             "Summary:\n\tOrganisation: {}\n\tUsername: {}\n\tPassword: {}\n\tLesson: {}".format(
@@ -327,7 +368,7 @@ class AsvzEnroller:
     def enroll(self):
         logging.info("Checking login credentials")
         try:
-            driver = AsvzEnroller.get_driver(self.chromedriver)
+            driver = AsvzEnroller.get_driver(self.chromedriver, self.proxy_url)
             driver.get(self.lesson_url)
             driver.implicitly_wait(3)
             self.__organisation_login(driver)
@@ -346,7 +387,7 @@ class AsvzEnroller:
             AsvzEnroller.wait_until(self.enrollment_start)
 
         try:
-            driver = AsvzEnroller.get_driver(self.chromedriver)
+            driver = AsvzEnroller.get_driver(self.chromedriver, self.proxy_url)
             driver.get(self.lesson_url)
             driver.implicitly_wait(3)
 
@@ -370,10 +411,11 @@ class AsvzEnroller:
                         EC.element_to_be_clickable(
                             (
                                 By.XPATH,
-                                "//button[@id='btnRegister' and @class='btn-primary btn enrollmentPlacePadding']",
+                                "//button[@id='btnRegister' and (@class='btn-primary btn enrollmentPlacePadding' or @class='btn btn-default')]",
                             )
                         )
                     ).click()
+
                     time.sleep(5)
                 except TimeoutException as e:
                     logging.info(
@@ -444,16 +486,24 @@ class AsvzEnroller:
 
     @staticmethod
     def __get_enrollment_time(driver):
-        enrollment_interval_raw = driver.find_element(
-            By.XPATH, "//dl[contains(., 'Einschreibezeitraum')]/dd"
-        )
-        # enrollment_interval_raw is like 'So, 09.05.2021 06:35 - Mo, 10.05.2021 07:05'
+        try:
+            enrollment_interval_raw = driver.find_element(
+                By.XPATH, "//dl[contains(., 'Einschreibezeitraum')]/dd"
+            )
+        except NoSuchElementException as e:
+            # If no section called "Einschreibezeitraum" is found, look for "dl" with "Anmeldezeitraum"
+            enrollment_interval_raw = driver.find_element(
+                By.XPATH, "//dl[contains(., 'Anmeldezeitraum')]/dd"
+            )
+
+        # enrollment_interval_raw is like 'Mo, 04.12.2023 10:00 - Di, 26.12.2023 23:59'
         enrollment_start_raw = (
             enrollment_interval_raw.get_attribute("innerHTML")
             .split("-")[0]
             .split(",")[1]
             .strip()
         )
+
         try:
             enrollment_start = datetime.strptime(enrollment_start_raw, "%d.%m.%Y %H:%M")
         except ValueError as e:
@@ -463,13 +513,24 @@ class AsvzEnroller:
                     enrollment_start_raw
                 )
             )
+
+        logging.info(
+            "Enrollment starts at {}".format(enrollment_start.strftime("%H:%M:%S"))
+        )
         return enrollment_start
 
     @staticmethod
     def __get_lesson_time(driver):
-        lesson_interval_raw = driver.find_element(
-            By.XPATH, "//dl[contains(., 'Datum/Zeit')]/dd"
-        )
+        try:
+            lesson_interval_raw = driver.find_element(
+                By.XPATH, "//dl[contains(., 'Datum/Zeit')]/dd"
+            )
+        except NoSuchElementException:
+            # If no section called "Datum/Zeit" is found, look for "dt" with "Lektionen"
+            lesson_interval_raw = driver.find_element(
+                By.XPATH, "//dt[contains(., 'Lektionen')]/following-sibling::dd[0]"
+            )
+
         # lesson_interval_raw is like 'Mo, 10.05.2021 06:55 - 08:05'
         lesson_start_raw = (
             lesson_interval_raw.get_attribute("innerHTML")
@@ -477,6 +538,7 @@ class AsvzEnroller:
             .split(",")[1]
             .strip()
         )
+
         try:
             lesson_start = datetime.strptime(lesson_start_raw, "%d.%m.%Y %H:%M")
         except ValueError as e:
@@ -484,6 +546,8 @@ class AsvzEnroller:
             raise AsvzBotException(
                 "Failed to parse lesson start time: '{}'".format(lesson_start_raw)
             )
+
+        logging.info("Lesson starts at {}".format(lesson_start.strftime("%H:%M:%S")))
         return lesson_start
 
     def __organisation_login(self, driver):
@@ -492,7 +556,7 @@ class AsvzEnroller:
             EC.element_to_be_clickable(
                 (
                     By.XPATH,
-                    "//button[@class='btn btn-default' and @title='Login']",
+                    "//button[@class='btn btn-default' and @title='Login'] | //a[@class='btn btn-default' and @title='Login & Anmelden']",
                 )
             )
         ).click()
@@ -599,12 +663,12 @@ class AsvzEnroller:
 
     def __wait_for_free_places(self, driver):
         while True:
-            try:
-                driver.find_element(
-                    By.XPATH,
-                    "//div[@class='alert alert-warning'][contains(., 'ausgebucht')]",
-                )
-            except NoSuchElementException:
+            num_free_spots_raw = driver.find_element(
+                By.XPATH, "//dl[contains(., 'Freie Plätze')]/dd/span"
+            )
+            num_free_spots = int(num_free_spots_raw.get_attribute("innerHTML"))
+
+            if num_free_spots > 0:
                 # has free places
                 return
 
@@ -631,16 +695,31 @@ def parse_and_validate_start_time(start_time) -> datetime:
         raise argparse.ArgumentTypeError(msg)
 
 
-def get_chromedriver_path():
+def get_chromedriver_path(proxy_url=None):
+    if proxy_url is not None:
+        logging.info(f"Using proxy: {proxy_url}")
+        http_client = CustomHttpClient(proxy=proxy_url)
+        download_manager = WDMDownloadManager(http_client)
+
     webdriver_manager = None
     try:
-        webdriver_manager = ChromeDriverManager(chrome_type=ChromeType.CHROMIUM)
+        if proxy_url is not None:
+            webdriver_manager = ChromeDriverManager(
+                chrome_type=ChromeType.CHROMIUM, download_manager=download_manager
+            )
+        else:
+            webdriver_manager = ChromeDriverManager(chrome_type=ChromeType.CHROMIUM)
     except:
         webdriver_manager = None
 
     if webdriver_manager is None:
         try:
-            webdriver_manager = ChromeDriverManager(chrome_type=ChromeType.GOOGLE)
+            if proxy_url is not None:
+                webdriver_manager = ChromeDriverManager(
+                    chrome_type=ChromeType.GOOGLE, download_manager=download_manager
+                )
+            else:
+                webdriver_manager = ChromeDriverManager(chrome_type=ChromeType.GOOGLE)
         except:
             webdriver_manager = None
 
@@ -673,6 +752,9 @@ def main():
         help="Organisation password",
     )
     parser.add_argument(
+        "-x", "--proxy", type=str, help="Proxy URL", required=False, default=None
+    )
+    parser.add_argument(
         "--save-credentials",
         default=False,
         action="store_true",
@@ -688,6 +770,13 @@ def main():
         "lesson_id",
         type=int,
         help="ID of a particular lesson e.g. 200949 in https://schalter.asvz.ch/tn/lessons/200949",
+    )
+
+    parser_event = subparsers.add_parser("event", help="For one-time events")
+    parser_event.add_argument(
+        "event_id",
+        type=int,
+        help="ID of a particular event e.g. 536447 in https://schalter.asvz.ch/tn/events/536447",
     )
 
     parser_training = subparsers.add_parser(
@@ -774,12 +863,15 @@ def main():
         logging.error(e)
         exit(1)
 
-    chromedriver_path = get_chromedriver_path()
+    chromedriver_path = get_chromedriver_path(args.proxy)
 
     enroller = None
     if args.type == "lesson":
         lesson_url = "{}/tn/lessons/{}".format(LESSON_BASE_URL, args.lesson_id)
-        enroller = AsvzEnroller(chromedriver_path, lesson_url, creds)
+        enroller = AsvzEnroller(chromedriver_path, lesson_url, creds, args.proxy)
+    elif args.type == "event":
+        lesson_url = "{}/tn/events/{}".format(LESSON_BASE_URL, args.event_id)
+        enroller = AsvzEnroller(chromedriver_path, lesson_url, creds, args.proxy)
     elif args.type == "training":
         enroller = AsvzEnroller.from_lesson_attributes(
             chromedriver_path,
@@ -789,6 +881,7 @@ def main():
             args.facility,
             args.level,
             args.sport_id,
+            args.proxy,
             creds,
         )
     else:
