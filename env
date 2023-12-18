@@ -2,7 +2,7 @@
 # ASVZ_ORGANIZATION=      # { ETH / UZH / ZHAW / PHZH / ASVZ }
 # VZ_USERNAME=
 # ASVZ_PASSWORD=
-# ASVZ_EVENT_TYPE=        # { training / lesson / event }
+# ASVZ_ENROLLMENT_TYPE=        # { training / lesson / event }
 # Lesson values
 # ASVZ_LESSON_ID=
 # Training values

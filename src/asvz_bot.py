@@ -94,8 +94,8 @@ class EnvVariables:
     Env variable names are prefixed with "ASVZ_", in order to prevent accidental collisions.
     """
 
-    # Event type, e.g. training, lesson
-    event_type: Optional[str] = os.environ.get("ASVZ_EVENT_TYPE")
+    # Enrollment type, e.g. training, lesson, event
+    enrollment_type: Optional[str] = os.environ.get("ASVZ_ENROLLMENT_TYPE")
 
     # Credential values
     cred_organization: Optional[str] = os.environ.get("ASVZ_ORGANIZATION")
@@ -762,7 +762,7 @@ def main():
     )
 
     subparsers = parser.add_subparsers(
-        dest="type", title="Event type", help="Select the event type"
+        dest="type", title="Enrollment type", help="Select the enrollment type"
     )
 
     parser_lesson = subparsers.add_parser("lesson", help="For lessons visited once")
@@ -839,7 +839,9 @@ def main():
         save_credentials=EnvVariables.save_credentials
         if EnvVariables.save_credentials is not None
         else True,
-        type=EnvVariables.event_type if EnvVariables.event_type != "" else None,
+        type=EnvVariables.enrollment_type
+        if EnvVariables.enrollment_type != ""
+        else None,
         lesson_id=EnvVariables.lesson_id if EnvVariables.lesson_id != "" else None,
         weekday=EnvVariables.week_day if EnvVariables.week_day != "" else None,
         start_time=parse_and_validate_start_time(EnvVariables.start_time)

@@ -12,8 +12,8 @@ services:
       - ASVZ_ORGANIZATION=${ASVZ_ORGANIZATION:-}
       - ASVZ_USERNAME=${ASVZ_USERNAME:-}
       - ASVZ_PASSWORD=${ASVZ_PASSWORD:-}
-      # Event type, e.g. training, lesson
-      - ASVZ_EVENT_TYPE=${ASVZ_EVENT_TYPE:-}
+      # Enrollment type, e.g. training, lesson, event
+      - ASVZ_ENROLLMENT_TYPE=${ASVZ_ENROLLMENT_TYPE:-}
       # Lesson values
       - ASVZ_LESSON_ID=${ASVZ_LESSON_ID:-}
       # Training values
