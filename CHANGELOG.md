@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added SWITCH edu-ID login.
 - Added a check to ensure the enrollment was actually successful and show the enrollment number.
 - Added Docker & Docker compose support (By [masus04](https://github.com/masus04)).
+- Added the option to use HTTP proxy (By [leopold-franz](https://github.com/leopold-franz)).
+- Added the functionality to register to one-time events (By [leopold-franz](https://github.com/leopold-franz)).
+- Added `Bad City`, `Bad Oerlikon` and `Bad Bungertwies` to the available facilities (By [leopold-franz](https://github.com/leopold-franz)).
 
 ### Fixed
 
