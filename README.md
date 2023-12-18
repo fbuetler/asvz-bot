@@ -95,16 +95,3 @@ flag as follows:
     ```bash
     docker compose --env-file myEvent.env up --build
     ```
-
-## Development
-
-### Script
-
-TODO
-
-### Mock
-
-```bash
-cd mock
-docker-compose up --build
-```
